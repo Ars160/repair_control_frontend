@@ -21,6 +21,8 @@ export const STATUSES = {
   UNDER_REVIEW_FOREMAN: 'UNDER_REVIEW_FOREMAN',
   UNDER_REVIEW_PM: 'UNDER_REVIEW_PM',
   REWORK: 'REWORK',
+  REWORK_FOREMAN: 'REWORK_FOREMAN',
+  REWORK_PM: 'REWORK_PM',
   COMPLETED: 'COMPLETED',
 };
 
@@ -103,16 +105,16 @@ export const tasks = [
     deadline: '2026-01-25T23:59:59',
     assigned_to: 1,
     checklist: [
-        { id: 1, text: 'Подготовить краску', completed: true },
-        { id: 2, text: 'Нанести первый слой', completed: true },
-        { id: 3, text: 'Обнаружены потеки, требуется перекраска', completed: false },
+      { id: 1, text: 'Подготовить краску', completed: true },
+      { id: 2, text: 'Нанести первый слой', completed: true },
+      { id: 3, text: 'Обнаружены потеки, требуется перекраска', completed: false },
     ],
     submission: {
-        photos: ['/mock-images/photo3.jpg'],
-        comment: 'Есть потеки на стене у окна. Нужно переделать.',
+      photos: ['/mock-images/photo3.jpg'],
+      comment: 'Есть потеки на стене у окна. Нужно переделать.',
     },
   },
-    {
+  {
     id: 5,
     title: 'Проверка сметы',
     object: 'Офис #205',
@@ -122,8 +124,8 @@ export const tasks = [
     deadline: '2026-01-19T23:59:59',
     assigned_to: 4,
     checklist: [
-        { id: 1, text: 'Проверить стоимость материалов', completed: false },
-        { id: 2, text: 'Проверить объемы работ', completed: false },
+      { id: 1, text: 'Проверить стоимость материалов', completed: false },
+      { id: 2, text: 'Проверить объемы работ', completed: false },
     ],
     submission: null,
   },

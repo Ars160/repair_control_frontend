@@ -4,7 +4,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import api from '../api/client';
 import { STATUSES, ROLES } from '../utils/mockData';
-import ChecklistItem from '../components/ChecklistItem';
+import ChecklistSection from '../components/ChecklistSection';
+import PhotoUpload from '../components/PhotoUpload';
 
 // Helper to translate status to Russian
 const translateStatus = (status) => {
@@ -14,6 +15,8 @@ const translateStatus = (status) => {
         [STATUSES.UNDER_REVIEW_FOREMAN]: 'На проверке у прораба',
         [STATUSES.UNDER_REVIEW_PM]: 'На проверке у ПМ',
         [STATUSES.REWORK]: 'Доработка',
+        [STATUSES.REWORK_FOREMAN]: 'Доработка (от Прораба)',
+        [STATUSES.REWORK_PM]: 'Вернуто ПМ',
         [STATUSES.COMPLETED]: 'Завершено',
     };
     return translations[status] || status;
@@ -34,54 +37,58 @@ const TaskDetail = () => {
     const [comment, setComment] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    useEffect(() => {
-        const fetchTask = async () => {
-            try {
-                setLoading(true);
-                const fetchedTask = await api.getTaskById(id);
-                if (fetchedTask) {
-                    setTask(fetchedTask);
-                    setChecklist(fetchedTask.checklist || []);
-                    // If task is in rework, pre-fill comment
-                    if (fetchedTask.status === STATUSES.REWORK) {
-                        setComment(fetchedTask.submission?.comment || '');
-                    }
-                } else {
-                    setError('Задача не найдена.');
+    const fetchTask = async () => {
+        try {
+            setLoading(true);
+            const fetchedTask = await api.getTaskById(id);
+            if (fetchedTask) {
+                setTask(fetchedTask);
+                // If task is in rework, pre-fill comment
+                if (fetchedTask.status === STATUSES.REWORK) {
+                    setComment(fetchedTask.submission?.comment || '');
                 }
-            } catch (err) {
-                setError('Не удалось загрузить задачу.');
-                console.error(err);
-            } finally {
-                setLoading(false);
+            } else {
+                setError('Задача не найдена.');
             }
-        };
+        } catch (err) {
+            setError('Не удалось загрузить задачу.');
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchTask();
     }, [id]);
 
-    const handleChecklistToggle = (itemId) => {
-        setChecklist(prev =>
-            prev.map(item =>
-                item.id === itemId ? { ...item, completed: !item.completed } : item
-            )
-        );
+    const handleFinalPhotoChange = async (base64) => {
+        const result = await api.updateTaskFinalPhoto(id, base64);
+        if (result.success) {
+            setTask(prev => ({ ...prev, finalPhotoUrl: base64 }));
+        }
     };
-
-    // Old photo handler removed in favor of inline grid handler
-
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (photos.length === 0) {
-            alert('Пожалуйста, добавьте хотя бы одно фото.');
+        // Validation: All checklists must be completed and have photos
+        const incompleteChecklists = task.checklist?.filter(item => !item.isCompleted || !item.photoUrl);
+        if (incompleteChecklists?.length > 0) {
+            alert('Пожалуйста, выполните все пункты чек-листа и загрузите фото для каждого пункта.');
+            return;
+        }
+
+        if (!task.finalPhotoUrl) {
+            alert('Пожалуйста, загрузите финальное фото результата.');
             return;
         }
 
         setIsSubmitting(true);
+        setError(null); // Clear previous errors
+
+        console.log('Submitting task review for ID:', id);
         const result = await api.submitTaskReview(id, {
-            checklist,
-            photos, // Pass File objects directly
             comment,
         });
 
@@ -94,11 +101,19 @@ const TaskDetail = () => {
         }
     };
 
-    // Determine if the form should be editable
-    const isEditable = user?.role === ROLES.WORKER && (task?.status === STATUSES.ACTIVE || task?.status === STATUSES.REWORK);
+    const isEditable = user?.role === ROLES.WORKER && (
+        task?.status === STATUSES.ACTIVE ||
+        task?.status === STATUSES.REWORK ||
+        task?.status === STATUSES.REWORK_FOREMAN
+    );
 
-    if (loading) return <div className="text-center mt-8">Загрузка задачи...</div>;
-    if (error) return <div className="text-center mt-8 text-red-500">{error}</div>;
+    const incompleteChecklist = task?.checklist?.filter(item => !item.isCompleted || !item.photoUrl) || [];
+    const isChecklistComplete = incompleteChecklist.length === 0;
+    const isFinalPhotoUploaded = !!task?.finalPhotoUrl;
+    const isReadyToSubmit = isChecklistComplete && isFinalPhotoUploaded;
+
+    if (loading) return <div className="text-center py-20">Загрузка задачи...</div>;
+    if (error) return <div className="text-center py-20 text-red-500">{error}</div>;
     if (!task) return null;
 
     return (
@@ -159,151 +174,142 @@ const TaskDetail = () => {
                 </div>
             </div>
 
-            {/* Rework message */}
-            {(task.status === STATUSES.REWORK || task.status === STATUSES.UNDER_REVIEW_FOREMAN) && task.rejectionReason && (
-                <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
-                    <div className="flex">
-                        <div className="flex-shrink-0">
-                            <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                            </svg>
-                        </div>
-                        <div className="ml-3">
-                            <h3 className="text-sm font-medium text-red-800">Замечания к доработке</h3>
-                            <div className="mt-2 text-sm text-red-700">
-                                <p>{task.rejectionReason}</p>
+            {/* History/Notes */}
+            {(task.rejectionReason || task.foremanNote) && (
+                <div className="space-y-4 mb-6">
+                    {task.rejectionReason && (
+                        <div className="bg-red-50 border-l-4 border-red-400 p-4">
+                            <div className="flex">
+                                <div className="flex-shrink-0">
+                                    <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div className="ml-3">
+                                    <h3 className="text-sm font-medium text-red-800">
+                                        {task.status === STATUSES.UNDER_REVIEW_FOREMAN ? 'Замечания к проверке' : 'Задача возвращена на доработку'}
+                                    </h3>
+                                    <div className="mt-2 text-sm text-red-700">
+                                        <p className="font-semibold mb-1">
+                                            {task.rejectedByFullName ? `Автор: ${task.rejectedByFullName}` : ''}
+                                        </p>
+                                        <p>{task.rejectionReason}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
+
+                    {task.foremanNote && (
+                        <div className="bg-indigo-50 border-l-4 border-indigo-400 p-4">
+                            <div className="flex">
+                                <div className="flex-shrink-0">
+                                    <svg className="h-5 w-5 text-indigo-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div className="ml-3">
+                                    <h3 className="text-sm font-medium text-indigo-800">Пояснение от Прораба (Исправлено)</h3>
+                                    <div className="mt-2 text-sm text-indigo-700 italic">
+                                        <p>"{task.foremanNote}"</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
-            <form onSubmit={handleSubmit}>
-                <div className="mb-6">
-                    <h2 className="text-xl font-semibold text-gray-700 mb-3">Чек-лист</h2>
-                    <div className="space-y-2">
-                        {checklist.map(item => (
-                            <ChecklistItem
-                                key={item.id}
-                                item={item}
-                                isEditable={isEditable}
-                                onToggle={isEditable ? handleChecklistToggle : () => { }}
-                            />
-                        ))}
-                    </div>
+            <div className="space-y-8">
+                {/* Checklist Section */}
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                    <ChecklistSection
+                        taskId={id}
+                        checklists={task.checklist}
+                        readOnly={!isEditable}
+                        onUpdate={fetchTask}
+                    />
                 </div>
 
-                {isEditable && (
-                    <div className="border-t pt-6">
-                        <h2 className="text-xl font-semibold text-gray-700 mb-3">Отправить отчет</h2>
+                {/* Final Submission Section */}
+                {(isEditable || task.finalPhotoUrl) && (
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                        <h2 className="text-xl font-bold text-slate-800 mb-4">Финальный результат</h2>
 
-                        <label className="block text-sm font-medium text-gray-700 mb-3">
-                            Фотографии (Обязательно 1-3 фото)
-                        </label>
+                        <div className="space-y-6">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider">
+                                    Общее фото результата
+                                </label>
+                                {isEditable ? (
+                                    <PhotoUpload
+                                        currentPhoto={task.finalPhotoUrl}
+                                        onPhotoChange={handleFinalPhotoChange}
+                                        label="Загрузить итоговое фото объекта"
+                                    />
+                                ) : (
+                                    task.finalPhotoUrl && (
+                                        <img
+                                            src={task.finalPhotoUrl}
+                                            alt="Final Result"
+                                            className="w-full h-64 object-cover rounded-xl border border-slate-100 shadow-sm"
+                                        />
+                                    )
+                                )}
+                            </div>
 
-                        {/* Hidden Input for adding files */}
-                        <input
-                            type="file"
-                            id="photo-upload"
-                            multiple
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => {
-                                if (e.target.files && e.target.files.length > 0) {
-                                    const newFiles = Array.from(e.target.files);
-                                    setPhotos(prev => {
-                                        const combined = [...prev, ...newFiles];
-                                        return combined.slice(0, 3); // Limit to 3 max
-                                    });
-                                }
-                                e.target.value = ''; // Reset
-                            }}
-                        />
-
-                        <div className="grid grid-cols-3 gap-4 mb-2">
-                            {[0, 1, 2].map((index) => {
-                                const isFilled = index < photos.length;
-                                // Allow clicking if slot is empty (regardless of order, though we fill sequentially)
-                                // Actually, simpler: if not filled, clicking triggers input which appends.
-
-                                return (
-                                    <div key={index} className="aspect-square relative flex flex-col items-center justify-center">
-                                        {isFilled ? (
-                                            <div className="relative w-full h-full group animate-fadeIn">
-                                                <img
-                                                    src={URL.createObjectURL(photos[index])}
-                                                    alt={`preview ${index}`}
-                                                    className="w-full h-full object-cover rounded-xl shadow-md border border-gray-200"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setPhotos(photos.filter((_, i) => i !== index))}
-                                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg hover:bg-red-600 transition-transform transform hover:scale-110 z-10"
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <div
-                                                onClick={() => {
-                                                    // Trigger upload if we haven't reached limit
-                                                    if (photos.length < 3) {
-                                                        document.getElementById('photo-upload').click();
-                                                    }
-                                                }}
-                                                className={`w-full h-full rounded-xl border-2 border-dashed flex flex-col items-center justify-center transition-all duration-200
-                                                    ${photos.length < 3
-                                                        ? 'border-indigo-300 bg-indigo-50/50 hover:bg-indigo-50 hover:border-indigo-400 text-indigo-500 cursor-pointer hover:shadow-sm'
-                                                        : 'border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed opacity-50'
-                                                    }`}
-                                            >
-                                                {photos.length < 3 ? (
-                                                    <>
-                                                        <div className="bg-white p-2 rounded-full shadow-sm mb-2 group-hover:scale-110 transition-transform">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                                            </svg>
-                                                        </div>
-                                                        <span className="text-xs font-medium">Фото {index + 1}</span>
-                                                    </>
-                                                ) : (
-                                                    <span className="text-xs text-gray-400">Пусто</span>
-                                                )}
-                                            </div>
-                                        )}
+                            {isEditable && (
+                                <form onSubmit={handleSubmit} className="space-y-4 pt-4 border-t border-slate-50">
+                                    <div>
+                                        <label htmlFor="comment" className="block text-sm font-medium text-slate-700 mb-2">
+                                            Ваш комментарий (опционально)
+                                        </label>
+                                        <textarea
+                                            id="comment"
+                                            rows="4"
+                                            value={comment}
+                                            onChange={(e) => setComment(e.target.value)}
+                                            placeholder="Опишите особенности выполнения работы..."
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none"
+                                        ></textarea>
                                     </div>
-                                );
-                            })}
-                        </div>
-                        <p className="text-xs text-secondary-500 mb-6 text-center">
-                            Можно выбрать сразу несколько файлов
-                        </p>
 
-                        <div className="mb-4">
-                            <label htmlFor="comment" className="block text-sm font-medium text-gray-700">
-                                Комментарий (опционально)
-                            </label>
-                            <textarea
-                                id="comment"
-                                rows="4"
-                                value={comment}
-                                onChange={(e) => setComment(e.target.value)}
-                                className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            ></textarea>
-                        </div>
+                                    {!isReadyToSubmit && (
+                                        <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl mb-4">
+                                            <p className="text-xs text-amber-700 font-medium flex items-center gap-2">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                                Для отправки отчета необходимо:
+                                            </p>
+                                            <ul className="text-[11px] text-amber-600 mt-1 list-disc list-inside">
+                                                {!isChecklistComplete && <li>Выполнить все пункты чек-листа ({incompleteChecklist.length} осталось)</li>}
+                                                {!isFinalPhotoUploaded && <li>Загрузить финальное фото результата</li>}
+                                            </ul>
+                                        </div>
+                                    )}
 
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="w-full sm:w-auto px-6 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300"
-                        >
-                            {isSubmitting ? 'Отправка...' : 'Отправить на проверку'}
-                        </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isSubmitting || !isReadyToSubmit}
+                                        className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold text-lg hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-100 active:scale-[0.98]"
+                                    >
+                                        {isSubmitting ? (
+                                            <span className="flex items-center justify-center gap-2">
+                                                <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                Отправка отчета...
+                                            </span>
+                                        ) : 'Завершить задачу и отправить отчет'}
+                                    </button>
+                                </form>
+                            )}
+                        </div>
                     </div>
                 )}
-            </form>
+            </div>
 
             {/* Display previous submission if not editable */}
             {!isEditable && task.submission && (

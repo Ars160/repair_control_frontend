@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api/client';
+import ChecklistManager from '../components/ChecklistManager';
 
 const EstimatorDashboard = () => {
     const [projects, setProjects] = useState([]);
@@ -32,7 +33,8 @@ const EstimatorDashboard = () => {
         assigneeIds: [],
         priority: 'MEDIUM',
         placement: 'END', // END, START, AFTER
-        placementTargetId: ''
+        placementTargetId: '',
+        checklist: []
     });
 
     const [users, setUsers] = useState([]);
@@ -253,7 +255,7 @@ const EstimatorDashboard = () => {
                 }));
                 setShowTaskForm(null);
                 setEditingTaskId(null);
-                setNewTask({ title: '', taskType: 'SEQUENTIAL', deadline: '', assigneeIds: [] });
+                setNewTask({ title: '', taskType: 'SEQUENTIAL', deadline: '', assigneeIds: [], checklist: [] });
             } else alert(res.message);
         } else {
             const res = await api.createTask(payload);
@@ -263,7 +265,7 @@ const EstimatorDashboard = () => {
                     [subObjectId]: [...(prev[subObjectId] || []), res.data]
                 }));
                 setShowTaskForm(null);
-                setNewTask({ title: '', taskType: 'SEQUENTIAL', deadline: '', assigneeIds: [], priority: 'MEDIUM', placement: 'END', placementTargetId: '' });
+                setNewTask({ title: '', taskType: 'SEQUENTIAL', deadline: '', assigneeIds: [], priority: 'MEDIUM', placement: 'END', placementTargetId: '', checklist: [] });
             } else alert(res.message);
         }
     };
@@ -277,7 +279,8 @@ const EstimatorDashboard = () => {
             assigneeIds: task.assigneeIds || [],
             priority: task.priority || 'MEDIUM',
             placement: 'END',
-            placementTargetId: ''
+            placementTargetId: '',
+            checklist: task.checklist || []
         });
         setEditingTaskId(task.id);
         setShowTaskForm(subObjectId);
@@ -538,9 +541,9 @@ const EstimatorDashboard = () => {
                                                                             onClick={(e) => {
                                                                                 e.stopPropagation();
                                                                                 if (showTaskForm === subObject.id && editingTaskId) {
-                                                                                    setShowTaskForm(null); setEditingTaskId(null); setNewTask({ title: '', taskType: 'SEQUENTIAL', deadline: '', assigneeIds: [] });
+                                                                                    setShowTaskForm(null); setEditingTaskId(null); setNewTask({ title: '', taskType: 'SEQUENTIAL', deadline: '', assigneeIds: [], checklist: [] });
                                                                                 } else {
-                                                                                    setShowTaskForm(subObject.id); setEditingTaskId(null); setNewTask({ title: '', taskType: 'SEQUENTIAL', deadline: '', assigneeIds: [] });
+                                                                                    setShowTaskForm(subObject.id); setEditingTaskId(null); setNewTask({ title: '', taskType: 'SEQUENTIAL', deadline: '', assigneeIds: [], checklist: [] });
                                                                                 }
                                                                             }}
                                                                             className="text-white bg-indigo-500 hover:bg-indigo-600 w-5 h-5 rounded flex items-center justify-center text-sm"
@@ -618,6 +621,58 @@ const EstimatorDashboard = () => {
                                                                                 )}
                                                                             </div>
 
+                                                                            {!editingTaskId && (
+                                                                                <div className="space-y-2 pt-2 border-t border-indigo-100">
+                                                                                    <label className="text-[10px] font-bold text-slate-500 uppercase">Чек-лист (пункты)</label>
+                                                                                    <div className="space-y-1">
+                                                                                        {newTask.checklist.map((item, idx) => (
+                                                                                            <div key={idx} className="flex gap-1 items-center bg-white p-1 rounded border border-slate-100">
+                                                                                                <span className="text-[10px] text-slate-400">#{idx + 1}</span>
+                                                                                                <span className="flex-1 text-[11px] truncate">{item}</span>
+                                                                                                <button
+                                                                                                    type="button"
+                                                                                                    onClick={() => setNewTask({ ...newTask, checklist: newTask.checklist.filter((_, i) => i !== idx) })}
+                                                                                                    className="text-red-400 hover:text-red-600 px-1"
+                                                                                                >
+                                                                                                    ×
+                                                                                                </button>
+                                                                                            </div>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                    <div className="flex gap-1">
+                                                                                        <input
+                                                                                            id="new-checklist-item"
+                                                                                            className="flex-1 border-indigo-100 rounded text-[11px] p-1"
+                                                                                            placeholder="Новый пункт..."
+                                                                                            onKeyDown={(e) => {
+                                                                                                if (e.key === 'Enter') {
+                                                                                                    e.preventDefault();
+                                                                                                    const val = e.target.value.trim();
+                                                                                                    if (val) {
+                                                                                                        setNewTask({ ...newTask, checklist: [...newTask.checklist, val] });
+                                                                                                        e.target.value = '';
+                                                                                                    }
+                                                                                                }
+                                                                                            }}
+                                                                                        />
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            onClick={() => {
+                                                                                                const input = document.getElementById('new-checklist-item');
+                                                                                                const val = input.value.trim();
+                                                                                                if (val) {
+                                                                                                    setNewTask({ ...newTask, checklist: [...newTask.checklist, val] });
+                                                                                                    input.value = '';
+                                                                                                }
+                                                                                            }}
+                                                                                            className="bg-indigo-600 text-white px-2 rounded font-bold"
+                                                                                        >
+                                                                                            +
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            )}
+
                                                                             {newTask.placement === 'AFTER' && !editingTaskId && (
                                                                                 <select
                                                                                     className="w-full border-indigo-200 rounded text-xs p-1.5 mt-2"
@@ -630,6 +685,17 @@ const EstimatorDashboard = () => {
                                                                                         <option key={t.id} value={t.id}>{t.title} (Status: {t.status})</option>
                                                                                     ))}
                                                                                 </select>
+                                                                            )}
+
+
+
+                                                                            {editingTaskId && (
+                                                                                <ChecklistManager
+                                                                                    taskId={editingTaskId}
+                                                                                    onUpdate={() => {
+                                                                                        // Refresh local state if needed
+                                                                                    }}
+                                                                                />
                                                                             )}
 
                                                                             <div className="flex gap-2 mt-2">

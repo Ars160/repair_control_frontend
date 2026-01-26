@@ -28,7 +28,7 @@ const Login = () => {
   // Helper to fill demo credentials
   const fillCredentials = (roleEmail) => {
     setEmail(roleEmail);
-    setPassword('password');
+    setPassword('123');
   };
 
   return (

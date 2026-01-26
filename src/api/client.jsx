@@ -82,10 +82,10 @@ export const apiClient = {
                     return allTasks.filter(t =>
                         // Assignee check
                         t.assigneeIds && t.assigneeIds.includes(userId) &&
-                        ['ACTIVE', 'REWORK', 'UNDER_REVIEW_FOREMAN', 'UNDER_REVIEW_PM'].includes(t.status)
+                        ['ACTIVE', 'REWORK', 'REWORK_FOREMAN', 'UNDER_REVIEW_FOREMAN', 'UNDER_REVIEW_PM'].includes(t.status)
                     );
                 case 'FOREMAN':
-                    return allTasks.filter(t => t.status === 'UNDER_REVIEW_FOREMAN');
+                    return allTasks.filter(t => t.status === 'UNDER_REVIEW_FOREMAN' || t.status === 'REWORK_PM');
                 case 'PM':
                     return allTasks.filter(t => t.status === 'UNDER_REVIEW_PM');
                 case 'ESTIMATOR':
@@ -125,29 +125,13 @@ export const apiClient = {
     },
 
     submitTaskReview: async (taskId, data) => {
-        const formData = new FormData();
-
-        const reportDto = {
-            comment: data.comment,
-            checklistAnswers: data.checklist ? data.checklist.map(item => ({
-                checklistItemId: item.id,
-                completed: item.completed
-            })) : []
-        };
-
-        formData.append('report', JSON.stringify(reportDto));
-
-        if (data.photos && data.photos.length > 0) {
-            data.photos.forEach(file => {
-                formData.append('files', file);
-            });
-        }
-
         try {
-            await api.post(`/api/tasks/${taskId}/report`, formData);
+            // New workflow submit
+            await api.post(`/api/tasks/${taskId}/submit`);
             return { success: true };
         } catch (error) {
-            return { success: false, message: error.response?.data?.message || 'Failed to submit report' };
+            console.error("Submit error", error);
+            return { success: false, message: error.response?.data?.message || 'Не удалось отправить отчет. Проверьте все пункты чек-листа и фото.' };
         }
     },
 
@@ -156,8 +140,8 @@ export const apiClient = {
             if (newStatus === 'COMPLETED' || newStatus === 'UNDER_REVIEW_PM') {
                 // Determine if it's approve based on status transition, but the endpoint is just /approve
                 // The backend handles the state transition logic based on current status and user role
-                await api.post(`/api/tasks/${taskId}/approve`);
-            } else if (newStatus === 'REWORK') {
+                await api.post(`/api/tasks/${taskId}/approve`, { comment });
+            } else if (newStatus === 'REWORK' || newStatus === 'REWORK_FOREMAN') {
                 await api.post(`/api/tasks/${taskId}/reject`, { comment: comment || 'Rework needed' });
             } else {
                 // For other status updates if any (e.g. locking/unlocking), we might need a general update endpoint
@@ -341,6 +325,83 @@ export const apiClient = {
         } catch (error) {
             console.error("Get users error", error);
             return [];
+        }
+    },
+
+    // Checklist APIs
+    getChecklistsByTask: async (taskId) => {
+        try {
+            const response = await api.get(`/api/checklist/task/${taskId}`);
+            return response.data;
+        } catch (error) {
+            console.error("Get checklists error", error);
+            return [];
+        }
+    },
+
+    createChecklistItem: async (taskId, description, orderIndex) => {
+        try {
+            const response = await api.post(`/api/checklist/task/${taskId}`, {
+                description,
+                orderIndex
+            });
+            return { success: true, data: response.data };
+        } catch (error) {
+            console.error("Create checklist error", error);
+            return { success: false, message: error.response?.data?.message };
+        }
+    },
+
+    updateChecklistItem: async (id, description, orderIndex) => {
+        try {
+            const response = await api.put(`/api/checklist/${id}`, {
+                description,
+                orderIndex
+            });
+            return { success: true, data: response.data };
+        } catch (error) {
+            console.error("Update checklist error", error);
+            return { success: false, message: error.response?.data?.message };
+        }
+    },
+
+    deleteChecklistItem: async (id) => {
+        try {
+            await api.delete(`/api/checklist/${id}`);
+            return { success: true };
+        } catch (error) {
+            console.error("Delete checklist error", error);
+            return { success: false, message: error.response?.data?.message };
+        }
+    },
+
+    toggleChecklistComplete: async (id, completed) => {
+        try {
+            const response = await api.put(`/api/checklist/${id}/complete?completed=${completed}`);
+            return { success: true, data: response.data };
+        } catch (error) {
+            console.error("Toggle checklist error", error);
+            return { success: false, message: error.response?.data?.message };
+        }
+    },
+
+    updateChecklistPhoto: async (id, photoUrl) => {
+        try {
+            const response = await api.put(`/api/checklist/${id}/photo`, { photoUrl });
+            return { success: true, data: response.data };
+        } catch (error) {
+            console.error("Update checklist photo error", error);
+            return { success: false, message: error.response?.data?.message };
+        }
+    },
+
+    updateTaskFinalPhoto: async (taskId, photoUrl) => {
+        try {
+            const response = await api.put(`/api/tasks/${taskId}/final-photo`, { photoUrl });
+            return { success: true, data: response.data };
+        } catch (error) {
+            console.error("Update final photo error", error);
+            return { success: false, message: error.response?.data?.message };
         }
     }
 };

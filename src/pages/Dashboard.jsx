@@ -3,6 +3,7 @@ import { useAuth } from '../hooks/useAuth';
 import api from '../api/client';
 import TaskCard from '../components/TaskCard';
 import EstimatorDashboard from './EstimatorDashboard';
+import ManagementDashboard from './ManagementDashboard';
 
 const Dashboard = () => {
     const { user } = useAuth();
@@ -13,8 +14,8 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchTasks = async () => {
             if (!user) return;
-            // Estimators use their own dashboard component, so we don't need to fetch tasks here for them
-            if (user.role === 'ESTIMATOR') {
+            // Estimators and Managers use their own dashboard components
+            if (user.role === 'ESTIMATOR' || user.role === 'PM' || user.role === 'SUPER_ADMIN') {
                 setLoading(false);
                 return;
             }
@@ -39,6 +40,10 @@ const Dashboard = () => {
 
     if (user.role === 'ESTIMATOR') {
         return <EstimatorDashboard />;
+    }
+
+    if (user.role === 'PM' || user.role === 'SUPER_ADMIN') {
+        return <ManagementDashboard user={user} />;
     }
 
     if (loading) {

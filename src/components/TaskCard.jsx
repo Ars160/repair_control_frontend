@@ -10,7 +10,10 @@ const getStatusStyles = (status) => {
         case STATUSES.ACTIVE:
             return 'bg-blue-100 text-blue-800';
         case STATUSES.REWORK:
+        case STATUSES.REWORK_FOREMAN:
             return 'bg-red-100 text-red-800';
+        case STATUSES.REWORK_PM:
+            return 'bg-rose-100 text-rose-900 border border-rose-200';
         case STATUSES.UNDER_REVIEW_FOREMAN:
         case STATUSES.UNDER_REVIEW_PM:
             return 'bg-yellow-100 text-yellow-800';
@@ -43,6 +46,8 @@ const translateStatus = (status) => {
         [STATUSES.UNDER_REVIEW_FOREMAN]: 'На проверке у прораба',
         [STATUSES.UNDER_REVIEW_PM]: 'На проверке у ПМ',
         [STATUSES.REWORK]: 'Доработка',
+        [STATUSES.REWORK_FOREMAN]: 'Доработка (от Прораба)',
+        [STATUSES.REWORK_PM]: 'Вернуто ПМ',
         [STATUSES.COMPLETED]: 'Завершено',
     };
     return translations[status] || status;
@@ -54,7 +59,7 @@ const TaskCard = ({ task, userRole }) => {
     // Determine the correct link based on user role and task status
     const getTaskLink = () => {
         if (task.status === STATUSES.LOCKED) return '#';
-        if ((userRole === ROLES.FOREMAN && task.status === STATUSES.UNDER_REVIEW_FOREMAN) ||
+        if ((userRole === ROLES.FOREMAN && (task.status === STATUSES.UNDER_REVIEW_FOREMAN || task.status === STATUSES.REWORK_PM)) ||
             (userRole === ROLES.PM && task.status === STATUSES.UNDER_REVIEW_PM)) {
             return `/review/${task.id}`;
         }

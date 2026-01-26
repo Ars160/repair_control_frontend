@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import api from '../api/client';
 import { STATUSES, ROLES } from '../utils/mockData';
-import ChecklistItem from '../components/ChecklistItem';
+import ChecklistSection from '../components/ChecklistSection';
 
 const ReviewTask = () => {
     const { id } = useParams();
@@ -16,9 +16,10 @@ const ReviewTask = () => {
     const [error, setError] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
 
-    // State for rejection
-    const [showRejectionForm, setShowRejectionForm] = useState(false);
-    const [rejectionComment, setRejectionComment] = useState('');
+    // State for actions with comment
+    const [showCommentForm, setShowCommentForm] = useState(false);
+    const [comment, setComment] = useState('');
+    const [actionType, setActionType] = useState(null); // 'APPROVE' or 'REJECT'
 
     useEffect(() => {
         const fetchTask = async () => {
@@ -27,7 +28,7 @@ const ReviewTask = () => {
                 const fetchedTask = await api.getTaskById(id);
                 if (fetchedTask) {
                     // Ensure the user is authorized to review this task
-                    if ((user.role === ROLES.FOREMAN && fetchedTask.status !== STATUSES.UNDER_REVIEW_FOREMAN) ||
+                    if ((user.role === ROLES.FOREMAN && fetchedTask.status !== STATUSES.UNDER_REVIEW_FOREMAN && fetchedTask.status !== STATUSES.REWORK_PM) ||
                         (user.role === ROLES.PM && fetchedTask.status !== STATUSES.UNDER_REVIEW_PM)) {
                         setError('У вас нет прав на просмотр этой задачи на данном этапе.');
                     } else {
@@ -56,7 +57,7 @@ const ReviewTask = () => {
         }
 
         if (nextStatus) {
-            const result = await api.updateTaskStatus(id, nextStatus);
+            const result = await api.updateTaskStatus(id, nextStatus, comment);
             if (result.success) {
                 alert('Задача одобрена.');
                 navigate('/dashboard');
@@ -68,12 +69,12 @@ const ReviewTask = () => {
     };
 
     const handleReject = async () => {
-        if (!rejectionComment) {
+        if (!comment) {
             alert('Пожалуйста, укажите причину доработки.');
             return;
         }
         setIsProcessing(true);
-        const result = await api.updateTaskStatus(id, STATUSES.REWORK, rejectionComment);
+        const result = await api.updateTaskStatus(id, STATUSES.REWORK, comment);
         if (result.success) {
             alert('Задача возвращена на доработку.');
             navigate('/dashboard');
@@ -83,6 +84,12 @@ const ReviewTask = () => {
         setIsProcessing(false);
     };
 
+    const openCommentForm = (type) => {
+        setActionType(type);
+        setComment('');
+        setShowCommentForm(true);
+    };
+
     const translateStatus = (status) => {
         const translations = {
             [STATUSES.LOCKED]: 'Заблокировано',
@@ -90,6 +97,8 @@ const ReviewTask = () => {
             [STATUSES.UNDER_REVIEW_FOREMAN]: 'На проверке у прораба',
             [STATUSES.UNDER_REVIEW_PM]: 'На проверке у ПМ',
             [STATUSES.REWORK]: 'Доработка',
+            [STATUSES.REWORK_FOREMAN]: 'Доработка (от Прораба)',
+            [STATUSES.REWORK_PM]: 'Вернуто ПМ',
             [STATUSES.COMPLETED]: 'Завершено',
         };
         return translations[status] || status;
@@ -171,17 +180,24 @@ const ReviewTask = () => {
                 {/* Left side: submission details */}
                 <div>
                     <div className="mb-6">
-                        <h2 className="text-xl font-semibold text-gray-700 mb-3">Чек-лист отчета</h2>
-                        <div className="space-y-2 bg-gray-50 p-3 rounded-md">
-                            {task.checklist.map(item => (
-                                <ChecklistItem
-                                    key={item.id}
-                                    item={item}
-                                    isEditable={false}
-                                />
-                            ))}
-                        </div>
+                        <ChecklistSection
+                            taskId={id}
+                            checklists={task.checklist}
+                            readOnly={true}
+                        />
                     </div>
+                    {task.finalPhotoUrl && (
+                        <div className="mb-6">
+                            <h3 className="text-lg font-medium text-gray-700 mb-3">Финальный результат</h3>
+                            <a href={task.finalPhotoUrl} target="_blank" rel="noopener noreferrer">
+                                <img
+                                    src={task.finalPhotoUrl}
+                                    alt="Final Result"
+                                    className="rounded-xl object-cover w-full h-64 border border-slate-100 shadow-sm hover:opacity-90 transition"
+                                />
+                            </a>
+                        </div>
+                    )}
                     <div className="mb-6">
                         <h3 className="text-lg font-medium text-gray-700">Комментарий исполнителя</h3>
                         {task.submission?.authorName && (
@@ -203,24 +219,47 @@ const ReviewTask = () => {
                     </div>
                 </div>
 
-                {/* Rejection Note for Foreman */}
-                {task.rejectionReason && (
-                    <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
-                        <div className="flex">
-                            <div className="flex-shrink-0">
-                                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                </svg>
-                            </div>
-                            <div className="ml-3">
-                                <h3 className="text-sm font-medium text-red-800">
-                                    Задача возвращена на доработку/проверку
-                                </h3>
-                                <div className="mt-2 text-sm text-red-700">
-                                    <p>{task.rejectionReason}</p>
+                {/* History/Notes */}
+                {(task.rejectionReason || task.foremanNote) && (
+                    <div className="space-y-4 mb-6">
+                        {task.rejectionReason && (
+                            <div className="bg-red-50 border-l-4 border-red-500 p-4">
+                                <div className="flex">
+                                    <div className="flex-shrink-0">
+                                        <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div className="ml-3">
+                                        <h3 className="text-sm font-medium text-red-800">Замечания к исправлению</h3>
+                                        <div className="mt-2 text-sm text-red-700">
+                                            <p className="font-semibold mb-1">
+                                                {task.rejectedByFullName ? `Автор: ${task.rejectedByFullName}` : ''}
+                                            </p>
+                                            <p>{task.rejectionReason}</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
+
+                        {task.foremanNote && (
+                            <div className="bg-indigo-50 border-l-4 border-indigo-500 p-4">
+                                <div className="flex">
+                                    <div className="flex-shrink-0">
+                                        <svg className="h-5 w-5 text-indigo-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div className="ml-3">
+                                        <h3 className="text-sm font-medium text-indigo-800">Пояснение от Прораба (Исправлено)</h3>
+                                        <div className="mt-2 text-sm text-indigo-700 italic">
+                                            <p>"{task.foremanNote}"</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -228,43 +267,53 @@ const ReviewTask = () => {
                 <div className="bg-gray-50 p-6 rounded-lg">
                     <h2 className="text-xl font-semibold text-gray-800 mb-4">Действия</h2>
 
-                    {!showRejectionForm ? (
+                    {!showCommentForm ? (
                         <div className="space-y-4">
                             <button
-                                onClick={handleApprove}
+                                onClick={() => {
+                                    if (user.role === ROLES.FOREMAN && task.status === STATUSES.REWORK_PM) {
+                                        openCommentForm('APPROVE');
+                                    } else {
+                                        handleApprove();
+                                    }
+                                }}
                                 disabled={isProcessing}
                                 className="w-full px-6 py-3 text-base font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-green-300"
                             >
-                                {isProcessing ? 'Обработка...' : 'Принять'}
+                                {isProcessing ? 'Обработка...' :
+                                    (user.role === ROLES.FOREMAN && task.status === STATUSES.REWORK_PM) ? 'Отправить ПМ (Исправлено)' :
+                                        'Принять'}
                             </button>
                             <button
-                                onClick={() => setShowRejectionForm(true)}
+                                onClick={() => openCommentForm('REJECT')}
                                 disabled={isProcessing}
                                 className="w-full px-6 py-3 text-base font-medium text-white bg-red-600 border border-transparent rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:bg-red-300"
                             >
-                                Вернуть на доработку
+                                {(user.role === ROLES.FOREMAN && task.status === STATUSES.REWORK_PM) ? 'Отправить Работнику (На доработку)' : 'Вернуть на доработку'}
                             </button>
                         </div>
                     ) : (
                         <div>
-                            <h3 className="text-lg font-medium text-gray-700 mb-2">Причина возврата</h3>
+                            <h3 className="text-lg font-medium text-gray-700 mb-2">
+                                {actionType === 'REJECT' ? 'Причина возврата' : 'Ваше пояснение для ПМ'}
+                            </h3>
                             <textarea
-                                value={rejectionComment}
-                                onChange={(e) => setRejectionComment(e.target.value)}
+                                value={comment}
+                                onChange={(e) => setComment(e.target.value)}
                                 rows="5"
                                 className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                placeholder="Опишите, что необходимо исправить..."
+                                placeholder={actionType === 'REJECT' ? "Опишите, что необходимо исправить..." : "Опишите, что было сделано..."}
                             ></textarea>
                             <div className="mt-4 flex flex-col sm:flex-row gap-2">
                                 <button
-                                    onClick={handleReject}
-                                    disabled={isProcessing || !rejectionComment}
-                                    className="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md shadow-sm hover:bg-red-700 disabled:bg-red-300"
+                                    onClick={actionType === 'REJECT' ? handleReject : handleApprove}
+                                    disabled={isProcessing || (actionType === 'REJECT' && !comment)}
+                                    className={`w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md shadow-sm disabled:bg-gray-300 ${actionType === 'REJECT' ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
                                 >
-                                    {isProcessing ? 'Отправка...' : 'Отправить на доработку'}
+                                    {isProcessing ? 'Отправка...' : 'Подтвердить'}
                                 </button>
                                 <button
-                                    onClick={() => setShowRejectionForm(false)}
+                                    onClick={() => setShowCommentForm(false)}
                                     disabled={isProcessing}
                                     className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50"
                                 >
