@@ -63,7 +63,7 @@ export const apiClient = {
                 const submission = task.report
                     ? {
                         ...task.report,
-                        photos: (task.report.photos || []).map(name => `${API_URL}/files/${name}`)
+                        photos: task.report.photos || []
                     }
                     : null;
                 return {
@@ -108,7 +108,7 @@ export const apiClient = {
             const submission = task.report
                 ? {
                     ...task.report,
-                    photos: (task.report.photos || []).map(name => `${API_URL}/files/${name}`)
+                    photos: task.report.photos || []
                 }
                 : null;
             return {
