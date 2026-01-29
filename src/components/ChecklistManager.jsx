@@ -4,6 +4,7 @@ import api from '../api/client';
 const ChecklistManager = ({ taskId, onUpdate }) => {
     const [items, setItems] = useState([]);
     const [newItemDesc, setNewItemDesc] = useState('');
+    const [newItemPhotoRequired, setNewItemPhotoRequired] = useState(false);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -23,10 +24,21 @@ const ChecklistManager = ({ taskId, onUpdate }) => {
 
         setLoading(true);
         const nextIndex = items.length;
-        const result = await api.createChecklistItem(taskId, newItemDesc, nextIndex);
+        const result = await api.createChecklistItem(taskId, newItemDesc, nextIndex, newItemPhotoRequired);
         if (result.success) {
             setItems([...items, result.data]);
             setNewItemDesc('');
+            setNewItemPhotoRequired(false);
+            onUpdate?.();
+        }
+        setLoading(false);
+    };
+
+    const handleTogglePhotoRequired = async (item) => {
+        setLoading(true);
+        const result = await api.updateChecklistItem(item.id, null, null, !item.isPhotoRequired);
+        if (result.success) {
+            setItems(items.map(i => i.id === item.id ? { ...i, isPhotoRequired: !item.isPhotoRequired } : i));
             onUpdate?.();
         }
         setLoading(false);
@@ -73,6 +85,19 @@ const ChecklistManager = ({ taskId, onUpdate }) => {
                         <span className="text-[10px] font-bold text-slate-400">#{index + 1}</span>
                         <span className="flex-1 text-xs text-slate-700">{item.description}</span>
 
+                        <div className="flex items-center gap-2 mr-2">
+                            <label className="flex items-center gap-1 cursor-pointer" title="Фото обязательно">
+                                <input
+                                    type="checkbox"
+                                    checked={item.isPhotoRequired}
+                                    onChange={() => handleTogglePhotoRequired(item)}
+                                    disabled={loading}
+                                    className="w-3 h-3 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                />
+                                <span className="text-[10px] text-slate-500 font-medium">Фото</span>
+                            </label>
+                        </div>
+
                         <div className="flex items-center gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                             <button
                                 onClick={() => handleMove(index, -1)}
@@ -110,6 +135,15 @@ const ChecklistManager = ({ taskId, onUpdate }) => {
                     onChange={e => setNewItemDesc(e.target.value)}
                     disabled={loading}
                 />
+                <label className="flex items-center gap-1 cursor-pointer bg-slate-50 px-2 rounded border border-slate-200">
+                    <input
+                        type="checkbox"
+                        checked={newItemPhotoRequired}
+                        onChange={(e) => setNewItemPhotoRequired(e.target.checked)}
+                        className="w-3 h-3 rounded border-slate-300 text-indigo-600"
+                    />
+                    <span className="text-[9px] text-slate-500 font-bold uppercase">Фото</span>
+                </label>
                 <button
                     type="submit"
                     disabled={loading}

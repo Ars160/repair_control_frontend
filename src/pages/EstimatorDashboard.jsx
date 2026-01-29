@@ -622,26 +622,43 @@ const EstimatorDashboard = () => {
                                                                             </div>
 
                                                                             {!editingTaskId && (
-                                                                                <div className="space-y-2 pt-2 border-t border-indigo-100">
-                                                                                    <label className="text-[10px] font-bold text-slate-500 uppercase">Чек-лист (пункты)</label>
-                                                                                    <div className="space-y-1">
-                                                                                        {newTask.checklist.map((item, idx) => (
-                                                                                            <div key={idx} className="flex gap-1 items-center bg-white p-1 rounded border border-slate-100">
-                                                                                                <span className="text-[10px] text-slate-400">#{idx + 1}</span>
-                                                                                                <span className="flex-1 text-[11px] truncate">{item}</span>
-                                                                                                <button
-                                                                                                    type="button"
-                                                                                                    onClick={() => setNewTask({ ...newTask, checklist: newTask.checklist.filter((_, i) => i !== idx) })}
-                                                                                                    className="text-red-400 hover:text-red-600 px-1"
-                                                                                                >
-                                                                                                    ×
-                                                                                                </button>
-                                                                                            </div>
-                                                                                        ))}
+                                                                                <>
+                                                                                    <div className="space-y-2 pt-2 border-t border-indigo-100">
+                                                                                        <label className="text-[10px] font-bold text-slate-500 uppercase">Чек-лист (пункты)</label>
+                                                                                        <div className="space-y-1">
+                                                                                            {newTask.checklist.map((item, idx) => (
+                                                                                                <div key={idx} className="flex gap-1 items-center bg-white p-1 rounded border border-slate-100 group relative">
+                                                                                                    <span className="text-[10px] text-slate-400">#{idx + 1}</span>
+                                                                                                    <span className="flex-1 text-[11px] truncate" title={item.description}>{item.description}</span>
+                                                                                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                                                        <label className="flex items-center gap-0.5 cursor-pointer">
+                                                                                                            <input
+                                                                                                                type="checkbox"
+                                                                                                                checked={item.isPhotoRequired}
+                                                                                                                onChange={(e) => {
+                                                                                                                    const updated = [...newTask.checklist];
+                                                                                                                    updated[idx] = { ...updated[idx], isPhotoRequired: e.target.checked };
+                                                                                                                    setNewTask({ ...newTask, checklist: updated });
+                                                                                                                }}
+                                                                                                                className="w-2.5 h-2.5 rounded border-slate-300 text-indigo-600"
+                                                                                                            />
+                                                                                                            <span className="text-[9px] text-slate-500 font-bold">Фото</span>
+                                                                                                        </label>
+                                                                                                        <button
+                                                                                                            type="button"
+                                                                                                            onClick={() => setNewTask({ ...newTask, checklist: newTask.checklist.filter((_, i) => i !== idx) })}
+                                                                                                            className="text-red-400 hover:text-red-600 px-1"
+                                                                                                        >
+                                                                                                            ×
+                                                                                                        </button>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            ))}
+                                                                                        </div>
                                                                                     </div>
                                                                                     <div className="flex gap-1">
                                                                                         <input
-                                                                                            id="new-checklist-item"
+                                                                                            id={`new-checklist-description-${subObject.id}`}
                                                                                             className="flex-1 border-indigo-100 rounded text-[11px] p-1"
                                                                                             placeholder="Новый пункт..."
                                                                                             onKeyDown={(e) => {
@@ -649,20 +666,32 @@ const EstimatorDashboard = () => {
                                                                                                     e.preventDefault();
                                                                                                     const val = e.target.value.trim();
                                                                                                     if (val) {
-                                                                                                        setNewTask({ ...newTask, checklist: [...newTask.checklist, val] });
+                                                                                                        const photoReq = document.getElementById(`new-checklist-photo-req-${subObject.id}`).checked;
+                                                                                                        setNewTask({ ...newTask, checklist: [...newTask.checklist, { description: val, isPhotoRequired: photoReq }] });
                                                                                                         e.target.value = '';
+                                                                                                        document.getElementById(`new-checklist-photo-req-${subObject.id}`).checked = false;
                                                                                                     }
                                                                                                 }
                                                                                             }}
                                                                                         />
+                                                                                        <label className="flex items-center gap-1 cursor-pointer bg-white px-1.5 rounded border border-indigo-50">
+                                                                                            <input
+                                                                                                type="checkbox"
+                                                                                                id={`new-checklist-photo-req-${subObject.id}`}
+                                                                                                className="w-3 h-3 rounded border-slate-300 text-indigo-600"
+                                                                                            />
+                                                                                            <span className="text-[9px] text-slate-400 font-bold">ФОТО</span>
+                                                                                        </label>
                                                                                         <button
                                                                                             type="button"
                                                                                             onClick={() => {
-                                                                                                const input = document.getElementById('new-checklist-item');
+                                                                                                const input = document.getElementById(`new-checklist-description-${subObject.id}`);
                                                                                                 const val = input.value.trim();
+                                                                                                const photoReq = document.getElementById(`new-checklist-photo-req-${subObject.id}`).checked;
                                                                                                 if (val) {
-                                                                                                    setNewTask({ ...newTask, checklist: [...newTask.checklist, val] });
+                                                                                                    setNewTask({ ...newTask, checklist: [...newTask.checklist, { description: val, isPhotoRequired: photoReq }] });
                                                                                                     input.value = '';
+                                                                                                    document.getElementById(`new-checklist-photo-req-${subObject.id}`).checked = false;
                                                                                                 }
                                                                                             }}
                                                                                             className="bg-indigo-600 text-white px-2 rounded font-bold"
@@ -670,9 +699,8 @@ const EstimatorDashboard = () => {
                                                                                             +
                                                                                         </button>
                                                                                     </div>
-                                                                                </div>
+                                                                                </>
                                                                             )}
-
                                                                             {newTask.placement === 'AFTER' && !editingTaskId && (
                                                                                 <select
                                                                                     className="w-full border-indigo-200 rounded text-xs p-1.5 mt-2"

@@ -127,7 +127,7 @@ export const apiClient = {
     submitTaskReview: async (taskId, data) => {
         try {
             // New workflow submit
-            await api.post(`/api/tasks/${taskId}/submit`);
+            await api.post(`/api/tasks/${taskId}/submit`, data);
             return { success: true };
         } catch (error) {
             console.error("Submit error", error);
@@ -339,11 +339,12 @@ export const apiClient = {
         }
     },
 
-    createChecklistItem: async (taskId, description, orderIndex) => {
+    createChecklistItem: async (taskId, description, orderIndex, isPhotoRequired = false) => {
         try {
             const response = await api.post(`/api/checklist/task/${taskId}`, {
                 description,
-                orderIndex
+                orderIndex,
+                isPhotoRequired
             });
             return { success: true, data: response.data };
         } catch (error) {
@@ -352,11 +353,12 @@ export const apiClient = {
         }
     },
 
-    updateChecklistItem: async (id, description, orderIndex) => {
+    updateChecklistItem: async (id, description, orderIndex, isPhotoRequired) => {
         try {
             const response = await api.put(`/api/checklist/${id}`, {
                 description,
-                orderIndex
+                orderIndex,
+                isPhotoRequired
             });
             return { success: true, data: response.data };
         } catch (error) {
@@ -401,6 +403,16 @@ export const apiClient = {
             return { success: true, data: response.data };
         } catch (error) {
             console.error("Update final photo error", error);
+            return { success: false, message: error.response?.data?.message };
+        }
+    },
+
+    updateChecklistItemRemark: async (id, remark) => {
+        try {
+            const response = await api.put(`/api/checklist/${id}/remark`, { remark });
+            return { success: true, data: response.data };
+        } catch (error) {
+            console.error("Update checklist remark error", error);
             return { success: false, message: error.response?.data?.message };
         }
     }

@@ -184,6 +184,11 @@ const ReviewTask = () => {
                             taskId={id}
                             checklists={task.checklist}
                             readOnly={true}
+                            canRemark={true}
+                            onUpdate={async () => {
+                                const fetchedTask = await api.getTaskById(id);
+                                if (fetchedTask) setTask(fetchedTask);
+                            }}
                         />
                     </div>
                     {task.finalPhotoUrl && (

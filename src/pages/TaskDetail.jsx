@@ -72,10 +72,9 @@ const TaskDetail = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Validation: All checklists must be completed and have photos
-        const incompleteChecklists = task.checklist?.filter(item => !item.isCompleted || !item.photoUrl);
-        if (incompleteChecklists?.length > 0) {
-            alert('Пожалуйста, выполните все пункты чек-листа и загрузите фото для каждого пункта.');
+        // Validation: All checklists must be completed and have required photos
+        if (incompleteChecklist.length > 0) {
+            alert(`Пожалуйста, выполните все пункты чек-листа. Осталось: ${incompleteChecklist.length}`);
             return;
         }
 
@@ -107,14 +106,18 @@ const TaskDetail = () => {
         task?.status === STATUSES.REWORK_FOREMAN
     );
 
-    const incompleteChecklist = task?.checklist?.filter(item => !item.isCompleted || !item.photoUrl) || [];
-    const isChecklistComplete = incompleteChecklist.length === 0;
-    const isFinalPhotoUploaded = !!task?.finalPhotoUrl;
-    const isReadyToSubmit = isChecklistComplete && isFinalPhotoUploaded;
-
     if (loading) return <div className="text-center py-20">Загрузка задачи...</div>;
     if (error) return <div className="text-center py-20 text-red-500">{error}</div>;
     if (!task) return null;
+
+    const incompleteChecklist = task?.checklist?.filter(item =>
+        !item.isCompleted || (item.isPhotoRequired && !item.photoUrl)
+    ) || [];
+    const isChecklistComplete = task.checklist?.every(item =>
+        item.isCompleted && (!item.isPhotoRequired || item.photoUrl)
+    );
+    const isFinalPhotoUploaded = !!task.finalPhotoUrl;
+    const isReadyToSubmit = isChecklistComplete && isFinalPhotoUploaded;
 
     return (
         <div className="max-w-4xl mx-auto space-y-6 pb-20">
@@ -237,26 +240,38 @@ const TaskDetail = () => {
                         <h2 className="text-xl font-bold text-slate-800 mb-4">Финальный результат</h2>
 
                         <div className="space-y-6">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider">
-                                    Общее фото результата
-                                </label>
-                                {isEditable ? (
+                            {isEditable ? (
+                                <div className={`mt-6 p-4 rounded-xl border-2 transition-all ${isChecklistComplete ? 'bg-indigo-50 border-indigo-100' : 'bg-slate-50 border-slate-100 opacity-60'}`}>
+                                    <h3 className="text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                        <span className="w-1.5 h-4 bg-indigo-500 rounded-full"></span>
+                                        Общее фото результата
+                                        {!isChecklistComplete && (
+                                            <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full ml-auto animate-pulse">
+                                                Завершите чек-лист для разблокировки
+                                            </span>
+                                        )}
+                                    </h3>
                                     <PhotoUpload
                                         currentPhoto={task.finalPhotoUrl}
                                         onPhotoChange={handleFinalPhotoChange}
-                                        label="Загрузить итоговое фото объекта"
+                                        disabled={!isChecklistComplete || loading}
+                                        label={isChecklistComplete ? "Загрузите финальное фото" : "Доступно после выполнения всех пунктов чек-листа"}
                                     />
-                                ) : (
-                                    task.finalPhotoUrl && (
+                                </div>
+                            ) : (
+                                task.finalPhotoUrl && (
+                                    <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                        <label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider">
+                                            Общее фото результата
+                                        </label>
                                         <img
                                             src={task.finalPhotoUrl}
                                             alt="Final Result"
-                                            className="w-full h-64 object-cover rounded-xl border border-slate-100 shadow-sm"
+                                            className="w-full h-64 object-cover rounded-xl shadow-sm"
                                         />
-                                    )
-                                )}
-                            </div>
+                                    </div>
+                                )
+                            )}
 
                             {isEditable && (
                                 <form onSubmit={handleSubmit} className="space-y-4 pt-4 border-t border-slate-50">
