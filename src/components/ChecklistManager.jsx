@@ -26,10 +26,11 @@ const ChecklistManager = ({ taskId, onUpdate }) => {
         const nextIndex = items.length;
         const result = await api.createChecklistItem(taskId, newItemDesc, nextIndex, newItemPhotoRequired);
         if (result.success) {
-            setItems([...items, result.data]);
+            const updatedItems = [...items, result.data];
+            setItems(updatedItems);
             setNewItemDesc('');
             setNewItemPhotoRequired(false);
-            onUpdate?.();
+            onUpdate?.(updatedItems);
         } else {
             alert(result.message || 'Ошибка при добавлении пункта');
         }
@@ -40,8 +41,9 @@ const ChecklistManager = ({ taskId, onUpdate }) => {
         setLoading(true);
         const result = await api.updateChecklistItem(item.id, null, null, !item.isPhotoRequired);
         if (result.success) {
-            setItems(items.map(i => i.id === item.id ? { ...i, isPhotoRequired: !item.isPhotoRequired } : i));
-            onUpdate?.();
+            const updatedItems = items.map(i => i.id === item.id ? { ...i, isPhotoRequired: !item.isPhotoRequired } : i);
+            setItems(updatedItems);
+            onUpdate?.(updatedItems);
         }
         setLoading(false);
     };
@@ -51,8 +53,9 @@ const ChecklistManager = ({ taskId, onUpdate }) => {
         setLoading(true);
         const result = await api.deleteChecklistItem(id);
         if (result.success) {
-            setItems(items.filter(i => i.id !== id));
-            onUpdate?.();
+            const updatedItems = items.filter(i => i.id !== id);
+            setItems(updatedItems);
+            onUpdate?.(updatedItems);
         }
         setLoading(false);
     };
@@ -73,7 +76,9 @@ const ChecklistManager = ({ taskId, onUpdate }) => {
             api.updateChecklistItem(newItems[newIndex].id, null, newIndex)
         ]);
 
-        setItems(newItems.map((item, idx) => ({ ...item, orderIndex: idx })));
+        const updatedItems = newItems.map((item, idx) => ({ ...item, orderIndex: idx }));
+        setItems(updatedItems);
+        onUpdate?.(updatedItems);
         setLoading(false);
     };
 
@@ -129,12 +134,18 @@ const ChecklistManager = ({ taskId, onUpdate }) => {
                 ))}
             </div>
 
-            <form onSubmit={handleAdd} className="flex gap-2 mt-2">
+            <div className="flex gap-2 mt-2">
                 <input
                     className="flex-1 border-slate-200 rounded text-[11px] px-2 py-1 focus:ring-1 focus:ring-indigo-500"
                     placeholder="Новый пункт..."
                     value={newItemDesc}
                     onChange={e => setNewItemDesc(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAdd(e);
+                        }
+                    }}
                     disabled={loading}
                 />
                 <label className="flex items-center gap-1 cursor-pointer bg-slate-50 px-2 rounded border border-slate-200">
@@ -147,13 +158,14 @@ const ChecklistManager = ({ taskId, onUpdate }) => {
                     <span className="text-[9px] text-slate-500 font-bold uppercase">Фото</span>
                 </label>
                 <button
-                    type="submit"
+                    type="button"
+                    onClick={handleAdd}
                     disabled={loading}
                     className="bg-indigo-600 text-white px-2 py-1 rounded text-[11px] font-bold hover:bg-indigo-700"
                 >
                     +
                 </button>
-            </form>
+            </div>
         </div>
     );
 };

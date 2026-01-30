@@ -807,8 +807,8 @@ const EstimatorDashboard = () => {
                                                                             {editingTaskId && (
                                                                                 <ChecklistManager
                                                                                     taskId={editingTaskId}
-                                                                                    onUpdate={() => {
-                                                                                        // Refresh local state if needed
+                                                                                    onUpdate={(updatedChecklist) => {
+                                                                                        setNewTask(prev => ({ ...prev, checklist: updatedChecklist }));
                                                                                     }}
                                                                                 />
                                                                             )}
@@ -893,8 +893,8 @@ const EstimatorDashboard = () => {
                                             <div key={`${s.id}-${s.isPM ? 'pm' : s.isForeman ? 'foreman' : 'worker'}`} className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
                                                 <div className="flex items-center gap-3">
                                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${s.isPM ? 'bg-amber-100 text-amber-600' :
-                                                            s.isForeman ? 'bg-indigo-100 text-indigo-600' :
-                                                                'bg-emerald-100 text-emerald-600'
+                                                        s.isForeman ? 'bg-indigo-100 text-indigo-600' :
+                                                            'bg-emerald-100 text-emerald-600'
                                                         }`}>
                                                         {s.fullName.substring(0, 1)}
                                                     </div>
