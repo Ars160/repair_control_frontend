@@ -111,23 +111,25 @@ const ReviewTask = () => {
     return (
         <div className="max-w-6xl mx-auto space-y-6 pb-20">
             {/* Task Info Card */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -mr-8 -mt-8 z-0"></div>
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-indigo-50 rounded-bl-full -mr-6 -mt-6 sm:-mr-8 sm:-mt-8 z-0"></div>
 
                 <div className="relative z-10">
-                    <div className="flex justify-between items-start mb-4">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
                         <div>
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700 mb-2">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-700 mb-2 uppercase tracking-wider">
                                 {task.projectName || 'Проект не указан'}
                             </span>
-                            <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-                                {task.title}
-                                <span className="text-sm font-normal text-slate-400 border border-slate-200 rounded px-2 py-0.5">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 leading-tight">
+                                    {task.title}
+                                </h1>
+                                <span className="inline-block self-start text-[10px] font-bold text-slate-400 border border-slate-200 rounded px-2 py-0.5 uppercase tracking-widest">
                                     Проверка
                                 </span>
-                            </h1>
+                            </div>
                         </div>
-                        <div className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase ${task.status === STATUSES.COMPLETED ? 'bg-green-100 text-green-700' :
+                        <div className={`self-start px-3 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase ${task.status === STATUSES.COMPLETED ? 'bg-green-100 text-green-700' :
                             task.status === STATUSES.ACTIVE ? 'bg-blue-100 text-blue-700' :
                                 task.status === STATUSES.REWORK ? 'bg-red-100 text-red-700' :
                                     'bg-gray-100 text-gray-700'
@@ -204,12 +206,12 @@ const ReviewTask = () => {
                         </div>
                     )}
                     <div className="mb-6">
-                        <h3 className="text-lg font-medium text-gray-700">Комментарий исполнителя</h3>
+                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest pl-1 mb-2">Комментарий исполнителя</h3>
                         {task.submission?.authorName && (
-                            <p className="text-sm font-semibold text-indigo-600 mb-2">От: {task.submission.authorName}</p>
+                            <p className="text-xs font-bold text-indigo-600 mb-2 pl-1">От: {task.submission.authorName}</p>
                         )}
-                        <p className="mt-1 text-sm text-gray-600 bg-gray-50 p-3 rounded-md min-h-[50px]">
-                            {task.submission?.comment || 'Нет комментария'}
+                        <p className="mt-1 text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-100 min-h-[50px] italic">
+                            {task.submission?.comment ? `"${task.submission.comment}"` : 'Нет комментария'}
                         </p>
                     </div>
                     <div>
@@ -269,8 +271,8 @@ const ReviewTask = () => {
                 )}
 
                 {/* Right side: actions */}
-                <div className="bg-gray-50 p-6 rounded-lg">
-                    <h2 className="text-xl font-semibold text-gray-800 mb-4">Действия</h2>
+                <div className="bg-slate-50 p-5 sm:p-6 rounded-2xl border border-slate-100">
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-800 mb-5">Действия</h2>
 
                     {!showCommentForm ? (
                         <div className="space-y-4">
@@ -283,44 +285,44 @@ const ReviewTask = () => {
                                     }
                                 }}
                                 disabled={isProcessing}
-                                className="w-full px-6 py-3 text-base font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-green-300"
+                                className="w-full px-6 py-4 text-base font-bold text-white bg-emerald-600 rounded-xl shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all active:scale-[0.98] disabled:bg-slate-300"
                             >
                                 {isProcessing ? 'Обработка...' :
                                     (user.role === ROLES.FOREMAN && task.status === STATUSES.REWORK_PM) ? 'Отправить ПМ (Исправлено)' :
-                                        'Принять'}
+                                        'Принять работу'}
                             </button>
                             <button
                                 onClick={() => openCommentForm('REJECT')}
                                 disabled={isProcessing}
-                                className="w-full px-6 py-3 text-base font-medium text-white bg-red-600 border border-transparent rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:bg-red-300"
+                                className="w-full px-6 py-4 text-base font-bold text-white bg-rose-600 rounded-xl shadow-lg shadow-rose-100 hover:bg-rose-700 transition-all active:scale-[0.98] disabled:bg-slate-300"
                             >
-                                {(user.role === ROLES.FOREMAN && task.status === STATUSES.REWORK_PM) ? 'Отправить Работнику (На доработку)' : 'Вернуть на доработку'}
+                                {(user.role === ROLES.FOREMAN && task.status === STATUSES.REWORK_PM) ? 'Вернуть работнику' : 'На доработку'}
                             </button>
                         </div>
                     ) : (
                         <div>
-                            <h3 className="text-lg font-medium text-gray-700 mb-2">
+                            <h3 className="text-sm font-bold text-slate-700 mb-3 uppercase tracking-wider pl-1">
                                 {actionType === 'REJECT' ? 'Причина возврата' : 'Ваше пояснение для ПМ'}
                             </h3>
                             <textarea
                                 value={comment}
                                 onChange={(e) => setComment(e.target.value)}
                                 rows="5"
-                                className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all outline-none text-sm"
                                 placeholder={actionType === 'REJECT' ? "Опишите, что необходимо исправить..." : "Опишите, что было сделано..."}
                             ></textarea>
-                            <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                            <div className="mt-4 flex flex-col sm:flex-row gap-3">
                                 <button
                                     onClick={actionType === 'REJECT' ? handleReject : handleApprove}
                                     disabled={isProcessing || (actionType === 'REJECT' && !comment)}
-                                    className={`w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md shadow-sm disabled:bg-gray-300 ${actionType === 'REJECT' ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
+                                    className={`w-full px-4 py-3.5 text-sm font-bold text-white rounded-xl shadow-md disabled:bg-slate-300 transition-all active:scale-[0.98] ${actionType === 'REJECT' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-emerald-600 hover:bg-emerald-700'}`}
                                 >
                                     {isProcessing ? 'Отправка...' : 'Подтвердить'}
                                 </button>
                                 <button
                                     onClick={() => setShowCommentForm(false)}
                                     disabled={isProcessing}
-                                    className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50"
+                                    className="w-full px-4 py-3.5 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all active:scale-[0.98]"
                                 >
                                     Отмена
                                 </button>

@@ -386,15 +386,15 @@ const EstimatorDashboard = () => {
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20">
-            <div className="flex justify-between items-center bg-white/60 p-6 rounded-2xl glass-panel sticky top-4 z-20 backdrop-blur-xl">
+            {/* Dashboard Header */}
+            <div className="flex justify-between items-center bg-white/60 p-4 sm:p-6 rounded-2xl glass-panel sticky top-4 z-20 backdrop-blur-xl">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Проекты</h1>
-                    <p className="text-slate-500 text-sm mt-1">Управление объектами и задачами</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Рабочее пространство</h1>
+                    <p className="text-slate-500 text-xs sm:text-sm mt-1">Управление проектами и задачами</p>
                 </div>
                 <button
                     onClick={() => {
                         if (showProjectForm && editingProjectId) {
-                            // Cancel edit
                             setShowProjectForm(false);
                             setEditingProjectId(null);
                             setNewProject({ name: '', description: '', deadline: '' });
@@ -402,26 +402,27 @@ const EstimatorDashboard = () => {
                             setShowProjectForm(!showProjectForm);
                         }
                     }}
-                    className="flex items-center px-4 py-2.5 bg-indigo-600 text-white rounded-xl font-medium shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all hover:-translate-y-0.5"
+                    className="flex items-center px-3 py-2 sm:px-4 sm:py-2.5 bg-indigo-600 text-white rounded-xl font-medium shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all hover:-translate-y-0.5"
                 >
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-                    {showProjectForm ? 'Отмена' : 'Новый проект'}
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+                    <span className="hidden sm:inline">{showProjectForm ? 'Отмена' : 'Новый проект'}</span>
+                    <span className="sm:hidden">{showProjectForm ? '✖' : '+ Проект'}</span>
                 </button>
             </div>
 
             {/* Create/Edit Project Form */}
             {showProjectForm && (
-                <div className="bg-white rounded-2xl shadow-xl p-6 border border-indigo-100 animate-fadeIn relative">
+                <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-indigo-100 animate-fadeIn relative">
                     <div className={`absolute top-0 left-0 w-1.5 h-full rounded-l-2xl ${editingProjectId ? 'bg-orange-500' : 'bg-indigo-500'}`}></div>
                     <form onSubmit={handleCreateProject} className="space-y-5">
                         <div className="flex justify-between items-center mb-2">
                             <h3 className="text-lg font-bold text-slate-800">{editingProjectId ? 'Редактировать проект' : 'Создание нового проекта'}</h3>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-slate-500 uppercase">Название</label>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Название</label>
                                 <input
-                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all outline-none"
+                                    className="w-full px-4 py-2.5 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all outline-none text-sm"
                                     placeholder="Например: ЖК Бауберг"
                                     value={newProject.name}
                                     onChange={e => setNewProject({ ...newProject, name: e.target.value })}
@@ -429,18 +430,18 @@ const EstimatorDashboard = () => {
                                 />
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-slate-500 uppercase">Дедлайн</label>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Дедлайн</label>
                                 <input
                                     type="date"
-                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all outline-none"
+                                    className="w-full px-4 py-2.5 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all outline-none text-sm"
                                     value={newProject.deadline}
                                     onChange={e => setNewProject({ ...newProject, deadline: e.target.value })}
                                 />
                             </div>
                             <div className="md:col-span-2 space-y-1">
-                                <label className="text-xs font-semibold text-slate-500 uppercase">Описание</label>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Описание</label>
                                 <textarea
-                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all outline-none min-h-[100px]"
+                                    className="w-full px-4 py-2.5 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all outline-none min-h-[80px] sm:min-h-[100px] text-sm"
                                     placeholder="Краткое описание проекта..."
                                     value={newProject.description}
                                     onChange={e => setNewProject({ ...newProject, description: e.target.value })}
@@ -448,7 +449,7 @@ const EstimatorDashboard = () => {
                             </div>
                         </div>
                         <div className="flex justify-end pt-2">
-                            <button type="submit" className={`px-6 py-2.5 text-white rounded-xl font-medium shadow-md transition-colors ${editingProjectId ? 'bg-orange-600 hover:bg-orange-700' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
+                            <button type="submit" className={`w-full sm:w-auto px-8 py-3 text-white rounded-xl font-bold shadow-md transition-all active:scale-[0.98] ${editingProjectId ? 'bg-orange-500 hover:bg-orange-600' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
                                 {editingProjectId ? 'Сохранить изменения' : 'Создать проект'}
                             </button>
                         </div>
@@ -461,30 +462,32 @@ const EstimatorDashboard = () => {
                     <div key={project.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow duration-300">
                         {/* Project Header */}
                         <div
-                            className="p-5 flex justify-between items-center cursor-pointer bg-gradient-to-r from-slate-50 to-white border-b border-slate-100 group"
+                            className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer bg-gradient-to-r from-slate-50 to-white border-b border-slate-100 group"
                             onClick={() => toggleProject(project.id)}
                         >
-                            <div className="flex items-center gap-4">
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${expandedProjects[project.id] ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500'}`}>
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                            <div className="flex items-center gap-3 sm:gap-4">
+                                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors shrink-0 ${expandedProjects[project.id] ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500'}`}>
+                                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                                 </div>
-                                <div>
-                                    <h2 className="text-xl font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">{project.name}</h2>
-                                    <p className="text-sm text-slate-500">{project.description || 'Нет описания'}</p>
+                                <div className="min-w-0">
+                                    <h2 className="text-lg sm:text-xl font-bold text-slate-800 group-hover:text-indigo-600 transition-colors truncate">{project.name}</h2>
+                                    <p className="text-xs sm:text-sm text-slate-500 truncate">{project.description || 'Нет описания'}</p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <button onClick={(e) => { e.stopPropagation(); startEditProject(project); }} className="p-2 text-slate-400 hover:text-indigo-600 transition-colors" title="Редактировать">
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                </button>
-                                <button onClick={(e) => { e.stopPropagation(); openProjectAssignment(project); }} className="p-2 text-slate-400 hover:text-indigo-600 transition-colors" title="Ответственные">
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                                </button>
-                                <button onClick={(e) => handleDeleteProject(e, project.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors" title="Удалить">
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                </button>
-                                <span className={`transform transition-transform duration-300 text-slate-400 ${expandedProjects[project.id] ? 'rotate-180 text-indigo-500' : ''}`}>
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                            <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 border-t sm:border-t-0 pt-3 sm:pt-0">
+                                <div className="flex items-center gap-1 sm:gap-2">
+                                    <button onClick={(e) => { e.stopPropagation(); startEditProject(project); }} className="p-2 text-slate-400 hover:text-indigo-600 transition-colors" title="Редактировать">
+                                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); openProjectAssignment(project); }} className="p-2 text-slate-400 hover:text-indigo-600 transition-colors" title="Ответственные">
+                                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                                    </button>
+                                    <button onClick={(e) => handleDeleteProject(e, project.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors" title="Удалить">
+                                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                </div>
+                                <span className={`transform transition-transform duration-300 text-slate-400 sm:ml-2 ${expandedProjects[project.id] ? 'rotate-180 text-indigo-500' : ''}`}>
+                                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                                 </span>
                             </div>
                         </div>
@@ -515,25 +518,34 @@ const EstimatorDashboard = () => {
 
                                 {showObjectForm === project.id && (
                                     <form onSubmit={(e) => handleCreateObject(e, project.id)} className="bg-white p-4 rounded-xl shadow-sm border border-indigo-100 mb-4 animate-fadeIn relative">
-                                        {editingObjectId && <div className="absolute top-2 right-2 text-xs font-bold text-orange-500 uppercase">Редактирование</div>}
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                            <input
-                                                className="border-slate-200 px-3 py-2 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500"
-                                                placeholder="Название объекта"
-                                                value={newObject.name}
-                                                onChange={e => setNewObject({ ...newObject, name: e.target.value })}
-                                                required
-                                            />
-                                            <div className="flex gap-2">
-                                                <input
-                                                    className="border-slate-200 px-3 py-2 rounded-lg text-sm w-full focus:ring-indigo-500 focus:border-indigo-500"
-                                                    placeholder="Адрес"
-                                                    value={newObject.address}
-                                                    onChange={e => setNewObject({ ...newObject, address: e.target.value })}
-                                                />
-                                                <button type="submit" className={`text-white px-4 rounded-lg text-sm font-medium transition-colors ${editingObjectId ? 'bg-orange-500 hover:bg-orange-600' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
-                                                    {editingObjectId ? 'Сохранить' : 'ОК'}
+                                        {editingObjectId && <div className="absolute top-2 right-2 text-[10px] font-bold text-orange-500 uppercase">Редактирование</div>}
+                                        <div className="flex flex-col gap-3">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Название объекта</label>
+                                                    <input
+                                                        className="w-full border-slate-200 px-3 py-2 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                                        placeholder="Напр: Квартира 42"
+                                                        value={newObject.name}
+                                                        onChange={e => setNewObject({ ...newObject, name: e.target.value })}
+                                                        required
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Адрес</label>
+                                                    <input
+                                                        className="w-full border-slate-200 px-3 py-2 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                                        placeholder="Улица, дом..."
+                                                        value={newObject.address}
+                                                        onChange={e => setNewObject({ ...newObject, address: e.target.value })}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-2 pt-1">
+                                                <button type="submit" className={`flex-1 text-white py-2.5 rounded-lg text-sm font-bold transition-colors ${editingObjectId ? 'bg-orange-500 hover:bg-orange-600' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
+                                                    {editingObjectId ? 'Сохранить изменения' : 'Создать объект'}
                                                 </button>
+                                                <button type="button" onClick={() => { setShowObjectForm(null); setEditingObjectId(null); setNewObject({ name: '', address: '' }); }} className="px-4 bg-slate-100 text-slate-600 py-2.5 rounded-lg text-sm font-bold">Отмена</button>
                                             </div>
                                         </div>
                                     </form>
@@ -592,7 +604,7 @@ const EstimatorDashboard = () => {
                                                     </div>
 
                                                     {showSubObjectForm === object.id && (
-                                                        <form onSubmit={(e) => handleCreateSubObject(e, object.id)} className="mb-3 flex gap-2 relative">
+                                                        <form onSubmit={(e) => handleCreateSubObject(e, object.id)} className="mb-3 flex flex-col sm:flex-row gap-2 relative">
                                                             <input
                                                                 className={`flex-1 border-slate-200 rounded-lg text-sm px-3 py-1.5 focus:ring-indigo-500 focus:border-indigo-500 ${editingSubObjectId ? 'border-orange-200 bg-orange-50' : ''}`}
                                                                 placeholder="Название (напр. Кухня, Этаж 1)"
@@ -600,13 +612,18 @@ const EstimatorDashboard = () => {
                                                                 onChange={e => setNewSubObject({ ...newSubObject, name: e.target.value })}
                                                                 required
                                                             />
-                                                            <button type="submit" className={`text-white px-3 py-1.5 rounded-lg text-sm ${editingSubObjectId ? 'bg-orange-500 hover:bg-orange-600' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
-                                                                {editingSubObjectId ? 'Сохр.' : 'OK'}
-                                                            </button>
+                                                            <div className="flex gap-2">
+                                                                <button type="submit" className={`flex-1 sm:flex-none text-white px-3 py-1.5 rounded-lg text-sm font-bold ${editingSubObjectId ? 'bg-orange-500 hover:bg-orange-600' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
+                                                                    {editingSubObjectId ? 'Сохр.' : 'OK'}
+                                                                </button>
+                                                                {editingSubObjectId && (
+                                                                    <button type="button" onClick={() => { setShowSubObjectForm(null); setEditingSubObjectId(null); setNewSubObject({ name: '' }); }} className="flex-1 sm:flex-none bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg text-sm font-bold">Отм.</button>
+                                                                )}
+                                                            </div>
                                                         </form>
                                                     )}
 
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                                         {objectSubObjects[object.id]?.map(subObject => (
                                                             <div key={subObject.id} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm relative group">
                                                                 <div
@@ -684,27 +701,33 @@ const EstimatorDashboard = () => {
                                                                                     <option key={u.id} value={u.id}>{u.fullName}</option>
                                                                                 ))}
                                                                             </select>
-                                                                            <div className="flex gap-1 mt-2">
-                                                                                <select
-                                                                                    className="flex-1 border-indigo-200 rounded text-xs p-1.5"
-                                                                                    value={newTask.priority}
-                                                                                    onChange={e => setNewTask({ ...newTask, priority: e.target.value })}
-                                                                                >
-                                                                                    <option value="LOW">Низкий</option>
-                                                                                    <option value="MEDIUM">Средний</option>
-                                                                                    <option value="HIGH">Высокий</option>
-                                                                                </select>
+                                                                            <div className="grid grid-cols-2 gap-2 mt-2">
+                                                                                <div className="space-y-1">
+                                                                                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest pl-1">Приоритет</label>
+                                                                                    <select
+                                                                                        className="w-full border-indigo-200 rounded-lg text-xs p-2 bg-white"
+                                                                                        value={newTask.priority}
+                                                                                        onChange={e => setNewTask({ ...newTask, priority: e.target.value })}
+                                                                                    >
+                                                                                        <option value="LOW">Низкий</option>
+                                                                                        <option value="MEDIUM">Средний</option>
+                                                                                        <option value="HIGH">Высокий</option>
+                                                                                    </select>
+                                                                                </div>
 
                                                                                 {!editingTaskId && (
-                                                                                    <select
-                                                                                        className="flex-1 border-indigo-200 rounded text-xs p-1.5"
-                                                                                        value={newTask.placement}
-                                                                                        onChange={e => setNewTask({ ...newTask, placement: e.target.value })}
-                                                                                    >
-                                                                                        <option value="END">В конец</option>
-                                                                                        <option value="START">В начало</option>
-                                                                                        <option value="AFTER">После...</option>
-                                                                                    </select>
+                                                                                    <div className="space-y-1">
+                                                                                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest pl-1">Расположение</label>
+                                                                                        <select
+                                                                                            className="w-full border-indigo-200 rounded-lg text-xs p-2 bg-white"
+                                                                                            value={newTask.placement}
+                                                                                            onChange={e => setNewTask({ ...newTask, placement: e.target.value })}
+                                                                                        >
+                                                                                            <option value="END">В конец</option>
+                                                                                            <option value="START">В начало</option>
+                                                                                            <option value="AFTER">После...</option>
+                                                                                        </select>
+                                                                                    </div>
                                                                                 )}
                                                                             </div>
 
@@ -743,11 +766,11 @@ const EstimatorDashboard = () => {
                                                                                             ))}
                                                                                         </div>
                                                                                     </div>
-                                                                                    <div className="flex gap-1">
+                                                                                    <div className="flex flex-col sm:flex-row gap-2">
                                                                                         <input
                                                                                             id={`new-checklist-description-${subObject.id}`}
-                                                                                            className="flex-1 border-indigo-100 rounded text-[11px] p-1"
-                                                                                            placeholder="Новый пункт..."
+                                                                                            className="flex-1 border-indigo-100 rounded-lg text-xs p-2.5 bg-white"
+                                                                                            placeholder="Новый пункт чек-листа..."
                                                                                             onKeyDown={(e) => {
                                                                                                 if (e.key === 'Enter') {
                                                                                                     e.preventDefault();
@@ -761,30 +784,32 @@ const EstimatorDashboard = () => {
                                                                                                 }
                                                                                             }}
                                                                                         />
-                                                                                        <label className="flex items-center gap-1 cursor-pointer bg-white px-1.5 rounded border border-indigo-50">
-                                                                                            <input
-                                                                                                type="checkbox"
-                                                                                                id={`new-checklist-photo-req-${subObject.id}`}
-                                                                                                className="w-3 h-3 rounded border-slate-300 text-indigo-600"
-                                                                                            />
-                                                                                            <span className="text-[9px] text-slate-400 font-bold">ФОТО</span>
-                                                                                        </label>
-                                                                                        <button
-                                                                                            type="button"
-                                                                                            onClick={() => {
-                                                                                                const input = document.getElementById(`new-checklist-description-${subObject.id}`);
-                                                                                                const val = input.value.trim();
-                                                                                                const photoReq = document.getElementById(`new-checklist-photo-req-${subObject.id}`).checked;
-                                                                                                if (val) {
-                                                                                                    setNewTask({ ...newTask, checklist: [...newTask.checklist, { description: val, isPhotoRequired: photoReq }] });
-                                                                                                    input.value = '';
-                                                                                                    document.getElementById(`new-checklist-photo-req-${subObject.id}`).checked = false;
-                                                                                                }
-                                                                                            }}
-                                                                                            className="bg-indigo-600 text-white px-2 rounded font-bold"
-                                                                                        >
-                                                                                            +
-                                                                                        </button>
+                                                                                        <div className="flex gap-2">
+                                                                                            <label className="flex items-center gap-2 cursor-pointer bg-white px-3 py-2 rounded-lg border border-indigo-100 flex-1 sm:flex-none">
+                                                                                                <input
+                                                                                                    type="checkbox"
+                                                                                                    id={`new-checklist-photo-req-${subObject.id}`}
+                                                                                                    className="w-4 h-4 rounded border-slate-300 text-indigo-600"
+                                                                                                />
+                                                                                                <span className="text-[10px] text-slate-500 font-bold uppercase">ФОТО</span>
+                                                                                            </label>
+                                                                                            <button
+                                                                                                type="button"
+                                                                                                onClick={() => {
+                                                                                                    const input = document.getElementById(`new-checklist-description-${subObject.id}`);
+                                                                                                    const val = input.value.trim();
+                                                                                                    const photoReq = document.getElementById(`new-checklist-photo-req-${subObject.id}`).checked;
+                                                                                                    if (val) {
+                                                                                                        setNewTask({ ...newTask, checklist: [...newTask.checklist, { description: val, isPhotoRequired: photoReq }] });
+                                                                                                        input.value = '';
+                                                                                                        document.getElementById(`new-checklist-photo-req-${subObject.id}`).checked = false;
+                                                                                                    }
+                                                                                                }}
+                                                                                                className="bg-indigo-600 text-white px-4 rounded-lg font-bold"
+                                                                                            >
+                                                                                                +
+                                                                                            </button>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </>
                                                                             )}

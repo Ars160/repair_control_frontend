@@ -107,40 +107,48 @@ const ChecklistSection = ({ taskId, checklists, onUpdate, readOnly = false, canR
                                     }`}
                             >
                                 <div className="flex items-start gap-3 mb-3">
-                                    <div className="flex items-center gap-2 flex-1">
+                                    <div className="flex items-center gap-2.5 flex-1 min-w-0">
                                         {!readOnly ? (
-                                            <div className="relative">
+                                            <div className="relative shrink-0">
                                                 <input
                                                     type="checkbox"
                                                     checked={item.isCompleted || false}
                                                     onChange={() => toggleChecklistComplete(item.id, item.isCompleted)}
                                                     disabled={loading}
-                                                    className={`w-6 h-6 rounded-lg border-2 transition-all ${item.isCompleted ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-slate-300 text-transparent hover:border-indigo-400'}`}
+                                                    className={`w-7 h-7 rounded-lg border-2 transition-all cursor-pointer ${item.isCompleted ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300'}`}
                                                 />
+                                                {item.isCompleted && (
+                                                    <svg className="absolute top-1 left-1 w-5 h-5 text-white pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+                                                    </svg>
+                                                )}
                                                 {item.isPhotoRequired && !item.photoUrl && (
                                                     <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
                                                     </span>
                                                 )}
                                             </div>
                                         ) : (
-                                            <div className={`w-5 h-5 rounded flex items-center justify-center ${item.isCompleted ? 'bg-emerald-500 text-white' : 'bg-slate-200'
+                                            <div className={`w-6 h-6 shrink-0 rounded-lg flex items-center justify-center ${item.isCompleted ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-300'
                                                 }`}>
-                                                {item.isCompleted && '✓'}
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+                                                </svg>
                                             </div>
                                         )}
-                                        <div>
-                                            <span className="text-[10px] font-bold text-slate-400">Пункт #{index + 1}</span>
-                                            <p className={`text-sm font-medium ${item.isCompleted ? 'text-slate-600' : 'text-slate-800'}`}>
+                                        <div className="min-w-0">
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">#{index + 1} {item.isPhotoRequired ? '• ФОТО ОБЯЗАТЕЛЬНО' : ''}</span>
+                                            <p className={`text-sm font-semibold leading-tight ${item.isCompleted ? 'text-slate-500 line-through' : 'text-slate-800'}`}>
                                                 {item.description}
                                             </p>
                                         </div>
                                     </div>
                                     {item.photoUrl && (
-                                        <div className="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center">
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                        <div className="shrink-0 w-8 h-8 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                             </svg>
                                         </div>
                                     )}
@@ -157,9 +165,9 @@ const ChecklistSection = ({ taskId, checklists, onUpdate, readOnly = false, canR
                                             />
                                         )}
                                         {item.remark && (
-                                            <div className="bg-amber-50 border border-amber-100 p-3 rounded-lg">
-                                                <p className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-1">Замечание от проверяющего:</p>
-                                                <p className="text-sm text-amber-800 italic">"{item.remark}"</p>
+                                            <div className="bg-rose-50 border border-rose-100 p-3 rounded-xl">
+                                                <p className="text-[10px] font-bold text-rose-700 uppercase tracking-widest mb-1 pl-1">Исправить:</p>
+                                                <p className="text-sm text-rose-800 italic leading-relaxed pl-1">"{item.remark}"</p>
                                             </div>
                                         )}
                                     </div>

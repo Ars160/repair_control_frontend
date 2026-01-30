@@ -40,44 +40,48 @@ const Analytics = () => {
     return (
         <div className="space-y-8 animate-fadeIn">
             <div>
-                <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Глобальная аналитика</h1>
-                <p className="text-slate-500 mt-1">Анализ эффективности и прогресса по всем активным объектам.</p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Глобальная аналитика</h1>
+                <p className="text-sm sm:text-base text-slate-500 mt-1">Анализ эффективности и прогресса по всем объектам.</p>
             </div>
 
             {/* Performance Overview */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-8">
-                        <div className="w-24 h-24 relative">
-                            <svg className="w-full h-full transform -rotate-90">
-                                <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-indigo-50" />
-                                <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent"
-                                    strokeDasharray={251.2}
-                                    strokeDashoffset={251.2 - (251.2 * globalStats.completionRate) / 100}
-                                    className="text-indigo-600 transition-all duration-1000"
-                                    strokeLinecap="round"
-                                />
-                            </svg>
-                            <div className="absolute inset-0 flex items-center justify-center text-xl font-bold text-slate-800">
-                                {globalStats.completionRate}%
+                <div className="lg:col-span-2 bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-sm relative overflow-hidden">
+                    <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-6 mb-8">
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-800 mb-1">Эффективность выполнения</h3>
+                            <p className="text-sm text-slate-400">Средний процент завершения работ по компании</p>
+                        </div>
+                        <div className="shrink-0">
+                            <div className="w-20 h-20 sm:w-24 sm:h-24 relative">
+                                <svg className="w-full h-full transform -rotate-90">
+                                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-indigo-50" />
+                                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent"
+                                        strokeDasharray={251.2}
+                                        strokeDashoffset={251.2 - (251.2 * globalStats.completionRate) / 100}
+                                        className="text-indigo-600 transition-all duration-1000"
+                                        strokeLinecap="round"
+                                    />
+                                </svg>
+                                <div className="absolute inset-0 flex items-center justify-center text-lg sm:text-xl font-bold text-slate-800">
+                                    {globalStats.completionRate}%
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <h3 className="text-lg font-bold text-slate-800 mb-1">Эффективность выполнения</h3>
-                    <p className="text-sm text-slate-400 mb-8">Средний процент завершения работ по компании</p>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 pt-4 border-t border-slate-50">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 sm:gap-8 pt-6 border-t border-slate-50">
                         <div>
-                            <div className="text-2xl font-bold text-slate-800">{globalStats.completed}</div>
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Завершено</div>
+                            <div className="text-xl sm:text-2xl font-bold text-slate-800">{globalStats.completed}</div>
+                            <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest">Завершено</div>
                         </div>
                         <div>
-                            <div className="text-2xl font-bold text-slate-800">{globalStats.inProgress}</div>
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">В работе</div>
+                            <div className="text-xl sm:text-2xl font-bold text-slate-800">{globalStats.inProgress}</div>
+                            <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest">В работе</div>
                         </div>
-                        <div>
-                            <div className="text-2xl font-bold text-rose-500">{globalStats.delayed}</div>
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Доработки</div>
+                        <div className="col-span-2 sm:col-span-1 border-t sm:border-t-0 pt-4 sm:pt-0">
+                            <div className="text-xl sm:text-2xl font-bold text-rose-500">{globalStats.delayed}</div>
+                            <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest">Доработки</div>
                         </div>
                     </div>
                 </div>
@@ -106,7 +110,7 @@ const Analytics = () => {
                     <h3 className="text-lg font-bold text-slate-800">Сравнение объектов</h3>
                     <p className="text-sm text-slate-400 mt-1">Состояние дел по каждому активному проекту.</p>
                 </div>
-                <div className="p-0">
+                <div className="hidden sm:block">
                     <table className="w-full text-left">
                         <thead className="bg-slate-50/50 text-slate-500 text-[10px] uppercase font-bold tracking-widest">
                             <tr>
@@ -166,6 +170,49 @@ const Analytics = () => {
                             })}
                         </tbody>
                     </table>
+                </div>
+
+                <div className="sm:hidden divide-y divide-slate-100">
+                    {projects.map(p => {
+                        const pTasks = tasks.filter(t => String(t.projectName).includes(p.name));
+                        const total = pTasks.length;
+                        const comp = pTasks.filter(t => t.status === STATUSES.COMPLETED).length;
+                        const prog = total > 0 ? Math.round((comp / total) * 100) : 0;
+                        const inP = pTasks.filter(t => t.status === STATUSES.ACTIVE).length;
+                        const rew = pTasks.filter(t => t.status.includes('REWORK')).length;
+
+                        return (
+                            <div key={p.id} className="p-5 space-y-4">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <div className="font-bold text-slate-800">{p.name}</div>
+                                        <div className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">ID: {p.id}</div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-xl font-bold text-indigo-600">{prog}%</div>
+                                        <div className="text-[9px] text-slate-400 font-bold uppercase">Общий прогресс</div>
+                                    </div>
+                                </div>
+                                <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                    <div className="bg-indigo-600 h-full rounded-full" style={{ width: `${prog}%` }}></div>
+                                </div>
+                                <div className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center text-[10px] font-bold">{comp}</span>
+                                        <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-[10px] font-bold">{inP}</span>
+                                        <span className="w-6 h-6 bg-rose-100 text-rose-600 rounded-lg flex items-center justify-center text-[10px] font-bold">{rew}</span>
+                                    </div>
+                                    {prog > 90 ? (
+                                        <span className="text-emerald-600 text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-emerald-50 rounded-lg">Завершается</span>
+                                    ) : rew > 2 ? (
+                                        <span className="text-rose-600 text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-rose-50 rounded-lg animate-pulse">Внимание</span>
+                                    ) : (
+                                        <span className="text-blue-600 text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-blue-50 rounded-lg">В работе</span>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         </div>

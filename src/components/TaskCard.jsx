@@ -75,33 +75,33 @@ const TaskCard = ({ task, userRole }) => {
     return (
         <Link
             to={getTaskLink()}
-            className={`block bg-white rounded-2xl p-6 shadow-sm border border-slate-100 transition-all duration-300 group
-                ${isLocked ? 'opacity-70 cursor-not-allowed bg-slate-50' : 'hover-card'}
+            className={`block bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-100 transition-all duration-300 group
+                ${isLocked ? 'opacity-70 cursor-not-allowed bg-slate-50' : 'hover-card active:scale-[0.98]'}
             `}
             onClick={e => isLocked && e.preventDefault()}
         >
-            <div className="flex justify-between items-start mb-4">
-                <div>
-                    <span className="text-xs font-semibold tracking-wider text-indigo-500 uppercase mb-1 block">
+            <div className="flex justify-between items-start mb-3 sm:mb-4">
+                <div className="flex-1 min-w-0 mr-2">
+                    <span className="text-[10px] sm:text-xs font-semibold tracking-wider text-indigo-500 uppercase mb-1 block truncate">
                         {task.object}
                     </span>
-                    <h3 className="text-lg font-bold text-slate-800 group-hover:text-indigo-600 transition-colors flex items-center gap-2">
+                    <h3 className="text-base sm:text-lg font-bold text-slate-800 group-hover:text-indigo-600 transition-colors flex items-center gap-2 truncate">
                         {task.title}
-                        {isLocked && <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>}
+                        {isLocked && <svg className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>}
                     </h3>
                 </div>
-                <div className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wide ${getStatusStyles(task.status)}`}>
+                <div className={`px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold tracking-wide shrink-0 ${getStatusStyles(task.status)}`}>
                     {translateStatus(task.status)}
                 </div>
             </div>
 
-            <div className="flex items-center space-x-4 mb-6">
-                <div className="flex items-center text-slate-500 text-sm">
-                    <svg className={`w-4 h-4 mr-1.5 ${getPriorityStyles(task.priority)}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            <div className="flex flex-wrap items-center gap-y-2 gap-x-4 mb-4 sm:mb-6">
+                <div className="flex items-center text-slate-500 text-xs sm:text-sm">
+                    <svg className={`w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 ${getPriorityStyles(task.priority)}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     <span className="capitalize">{task.priority === 'HIGH' ? 'Высокий' : task.priority === 'MEDIUM' ? 'Средний' : 'Низкий'}</span>
                 </div>
-                <div className="flex items-center text-slate-500 text-sm">
-                    <svg className={`w-4 h-4 mr-1.5 ${isDeadlinePassed ? 'text-red-500' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <div className="flex items-center text-slate-500 text-xs sm:text-sm">
+                    <svg className={`w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 ${isDeadlinePassed ? 'text-red-500' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                     <span className={isDeadlinePassed ? 'text-red-600 font-medium' : ''}>
                         {new Date(task.deadline).toLocaleDateString()}
                     </span>
@@ -110,13 +110,13 @@ const TaskCard = ({ task, userRole }) => {
 
             {/* Premium Progress Bar */}
             <div className={`mt-2 ${isLocked ? 'opacity-50' : ''}`}>
-                <div className="flex justify-between text-xs mb-1.5">
+                <div className="flex justify-between text-[10px] sm:text-xs mb-1 sm:mb-1.5">
                     <span className="text-slate-500 font-medium">Прогресс</span>
                     <span className="text-indigo-600 font-bold">{completionPercentage}%</span>
                 </div>
-                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-slate-100 rounded-full h-1.5 sm:h-2 overflow-hidden">
                     <div
-                        className="bg-gradient-to-r from-indigo-500 to-indigo-600 h-2 rounded-full transition-all duration-500 ease-out"
+                        className="bg-gradient-to-r from-indigo-500 to-indigo-600 h-1.5 sm:h-2 rounded-full transition-all duration-500 ease-out"
                         style={{ width: `${completionPercentage}%` }}
                     ></div>
                 </div>

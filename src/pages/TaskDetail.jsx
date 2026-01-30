@@ -123,18 +123,18 @@ const TaskDetail = () => {
     return (
         <div className="max-w-4xl mx-auto space-y-6 pb-20">
             {/* Task Info Card */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -mr-8 -mt-8 z-0"></div>
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-indigo-50 rounded-bl-full -mr-6 -mt-6 sm:-mr-8 sm:-mt-8 z-0"></div>
 
                 <div className="relative z-10">
-                    <div className="flex justify-between items-start mb-4">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
                         <div>
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700 mb-2">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-700 mb-2 uppercase tracking-wider">
                                 {task.projectName || 'Проект не указан'}
                             </span>
-                            <h1 className="text-3xl font-bold text-slate-900">{task.title}</h1>
+                            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 leading-tight">{task.title}</h1>
                         </div>
-                        <div className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase ${task.status === STATUSES.COMPLETED ? 'bg-green-100 text-green-700' :
+                        <div className={`self-start px-3 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase ${task.status === STATUSES.COMPLETED ? 'bg-green-100 text-green-700' :
                             task.status === STATUSES.ACTIVE ? 'bg-blue-100 text-blue-700' :
                                 task.status === STATUSES.REWORK ? 'bg-red-100 text-red-700' :
                                     'bg-gray-100 text-gray-700'
@@ -226,7 +226,7 @@ const TaskDetail = () => {
 
             <div className="space-y-8">
                 {/* Checklist Section */}
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6">
                     <ChecklistSection
                         taskId={id}
                         checklists={task.checklist}
@@ -237,17 +237,19 @@ const TaskDetail = () => {
 
                 {/* Final Submission Section */}
                 {(isEditable || task.finalPhotoUrl) && (
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-                        <h2 className="text-xl font-bold text-slate-800 mb-4">Финальный результат</h2>
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6">
+                        <h2 className="text-lg sm:text-xl font-bold text-slate-800 mb-4">Финальный результат</h2>
 
                         <div className="space-y-6">
                             {isEditable ? (
-                                <div className={`mt-6 p-4 rounded-xl border-2 transition-all ${isChecklistComplete ? 'bg-indigo-50 border-indigo-100' : 'bg-slate-50 border-slate-100 opacity-60'}`}>
-                                    <h3 className="text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
-                                        <span className="w-1.5 h-4 bg-indigo-500 rounded-full"></span>
-                                        Общее фото результата
+                                <div className={`mt-2 p-4 rounded-xl border-2 transition-all ${isChecklistComplete ? 'bg-indigo-50 border-indigo-100' : 'bg-slate-50 border-slate-100 opacity-60'}`}>
+                                    <h3 className="text-sm font-bold text-slate-800 mb-3 flex flex-col sm:flex-row sm:items-center gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-1.5 h-4 bg-indigo-500 rounded-full"></span>
+                                            Общее фото результата
+                                        </div>
                                         {!isChecklistComplete && (
-                                            <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full ml-auto animate-pulse">
+                                            <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full sm:ml-auto animate-pulse self-start sm:self-auto">
                                                 Завершите чек-лист для разблокировки
                                             </span>
                                         )}
@@ -261,23 +263,23 @@ const TaskDetail = () => {
                                 </div>
                             ) : (
                                 task.finalPhotoUrl && (
-                                    <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                                        <label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider">
+                                    <div className="mt-2 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                        <label className="block text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider">
                                             Общее фото результата
                                         </label>
                                         <img
                                             src={task.finalPhotoUrl}
                                             alt="Final Result"
-                                            className="w-full h-64 object-cover rounded-xl shadow-sm"
+                                            className="w-full h-48 sm:h-64 object-cover rounded-xl shadow-sm"
                                         />
                                     </div>
                                 )
                             )}
 
                             {isEditable && (
-                                <form onSubmit={handleSubmit} className="space-y-4 pt-4 border-t border-slate-50">
+                                <form onSubmit={handleSubmit} className="space-y-5 pt-4 border-t border-slate-50">
                                     <div>
-                                        <label htmlFor="comment" className="block text-sm font-medium text-slate-700 mb-2">
+                                        <label htmlFor="comment" className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest pl-1">
                                             Ваш комментарий (опционально)
                                         </label>
                                         <textarea
@@ -286,21 +288,21 @@ const TaskDetail = () => {
                                             value={comment}
                                             onChange={(e) => setComment(e.target.value)}
                                             placeholder="Опишите особенности выполнения работы..."
-                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none"
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all outline-none text-sm"
                                         ></textarea>
                                     </div>
 
                                     {!isReadyToSubmit && (
                                         <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl mb-4">
-                                            <p className="text-xs text-amber-700 font-medium flex items-center gap-2">
+                                            <p className="text-xs text-amber-700 font-bold flex items-center gap-2">
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                                 </svg>
-                                                Для отправки отчета необходимо:
+                                                ДЛЯ ОТПРАВКИ ОТЧЕТА:
                                             </p>
-                                            <ul className="text-[11px] text-amber-600 mt-1 list-disc list-inside">
-                                                {!isChecklistComplete && <li>Выполнить все пункты чек-листа ({incompleteChecklist.length} осталось)</li>}
-                                                {!isFinalPhotoUploaded && <li>Загрузить финальное фото результата</li>}
+                                            <ul className="text-[10px] text-amber-600 mt-1 space-y-0.5 list-disc list-inside font-medium">
+                                                {!isChecklistComplete && <li>Выполнить пункты чек-листа ({incompleteChecklist.length} ост.)</li>}
+                                                {!isFinalPhotoUploaded && <li>Загрузить фото результата</li>}
                                             </ul>
                                         </div>
                                     )}
@@ -308,7 +310,7 @@ const TaskDetail = () => {
                                     <button
                                         type="submit"
                                         disabled={isSubmitting || !isReadyToSubmit}
-                                        className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold text-lg hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-100 active:scale-[0.98]"
+                                        className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold text-base sm:text-lg hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-100 active:scale-[0.98]"
                                     >
                                         {isSubmitting ? (
                                             <span className="flex items-center justify-center gap-2">
@@ -318,7 +320,7 @@ const TaskDetail = () => {
                                                 </svg>
                                                 Отправка отчета...
                                             </span>
-                                        ) : 'Завершить задачу и отправить отчет'}
+                                        ) : 'Отправить отчет на проверку'}
                                     </button>
                                 </form>
                             )}
