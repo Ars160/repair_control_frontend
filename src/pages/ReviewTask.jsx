@@ -74,7 +74,8 @@ const ReviewTask = () => {
             return;
         }
         setIsProcessing(true);
-        const result = await api.updateTaskStatus(id, STATUSES.REWORK, comment);
+        // Backend will determine correct status (REWORK_FOREMAN or REWORK_PM) based on user role
+        const result = await api.updateTaskStatus(id, 'REWORK_FOREMAN', comment);
         if (result.success) {
             alert('Задача возвращена на доработку.');
             navigate('/dashboard');
@@ -96,7 +97,6 @@ const ReviewTask = () => {
             [STATUSES.ACTIVE]: 'Активно',
             [STATUSES.UNDER_REVIEW_FOREMAN]: 'На проверке у прораба',
             [STATUSES.UNDER_REVIEW_PM]: 'На проверке у ПМ',
-            [STATUSES.REWORK]: 'Доработка',
             [STATUSES.REWORK_FOREMAN]: 'Доработка (от Прораба)',
             [STATUSES.REWORK_PM]: 'Вернуто ПМ',
             [STATUSES.COMPLETED]: 'Завершено',

@@ -69,7 +69,7 @@ export const apiClient = {
                 return {
                     ...task,
                     object: `${task.objectName} - ${task.subObjectName}`,
-                    priority: 'medium',
+                    priority: task.priority || 'MEDIUM', // Use actual priority from backend
                     status: task.status,
                     checklist: task.checklist || [],
                     submission
@@ -80,9 +80,9 @@ export const apiClient = {
             switch (userRole) {
                 case 'WORKER':
                     return allTasks.filter(t =>
-                        // Assignee check
+                        // Assignee check - only show tasks worker can edit
                         t.assigneeIds && t.assigneeIds.includes(userId) &&
-                        ['ACTIVE', 'REWORK', 'REWORK_FOREMAN', 'UNDER_REVIEW_FOREMAN', 'UNDER_REVIEW_PM'].includes(t.status)
+                        ['ACTIVE', 'REWORK_FOREMAN'].includes(t.status)
                     );
                 case 'FOREMAN':
                     return allTasks.filter(t => t.status === 'UNDER_REVIEW_FOREMAN' || t.status === 'REWORK_PM');
@@ -141,7 +141,7 @@ export const apiClient = {
                 // Determine if it's approve based on status transition, but the endpoint is just /approve
                 // The backend handles the state transition logic based on current status and user role
                 await api.post(`/api/tasks/${taskId}/approve`, { comment });
-            } else if (newStatus === 'REWORK' || newStatus === 'REWORK_FOREMAN') {
+            } else if (newStatus === 'REWORK_FOREMAN' || newStatus === 'REWORK_PM') {
                 await api.post(`/api/tasks/${taskId}/reject`, { comment: comment || 'Rework needed' });
             } else {
                 // For other status updates if any (e.g. locking/unlocking), we might need a general update endpoint

@@ -44,7 +44,7 @@ const TaskDetail = () => {
             if (fetchedTask) {
                 setTask(fetchedTask);
                 // If task is in rework, pre-fill comment
-                if (fetchedTask.status === STATUSES.REWORK) {
+                if (fetchedTask.status === STATUSES.REWORK_FOREMAN) {
                     setComment(fetchedTask.submission?.comment || '');
                 }
             } else {
@@ -66,6 +66,8 @@ const TaskDetail = () => {
         const result = await api.updateTaskFinalPhoto(id, base64);
         if (result.success) {
             setTask(prev => ({ ...prev, finalPhotoUrl: base64 }));
+        } else {
+            alert('Не удалось загрузить фото: ' + (result.message || 'Неизвестная ошибка'));
         }
     };
 
@@ -102,7 +104,6 @@ const TaskDetail = () => {
 
     const isEditable = user?.role === ROLES.WORKER && (
         task?.status === STATUSES.ACTIVE ||
-        task?.status === STATUSES.REWORK ||
         task?.status === STATUSES.REWORK_FOREMAN
     );
 
