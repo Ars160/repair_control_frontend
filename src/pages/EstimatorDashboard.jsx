@@ -39,6 +39,11 @@ const EstimatorDashboard = () => {
 
     const [users, setUsers] = useState([]);
 
+    // Assignment UI states
+    const [showAssignmentModal, setShowAssignmentModal] = useState(null); // { type: 'PROJECT' | 'SUBOBJECT', id, name }
+    const [assignedStaff, setAssignedStaff] = useState([]);
+    const [assignmentLoading, setAssignmentLoading] = useState(false);
+
     useEffect(() => {
         loadProjects();
         loadUsers();
@@ -80,6 +85,82 @@ const EstimatorDashboard = () => {
             const data = await api.getTasksBySubObject(subObjectId);
             setSubObjectTasks(prev => ({ ...prev, [subObjectId]: data }));
         }
+    };
+
+    // --- Assignment Handlers ---
+
+    const openProjectAssignment = async (project) => {
+        setShowAssignmentModal({ type: 'PROJECT', id: project.id, name: project.name });
+        setAssignmentLoading(true);
+        // We can get PM from project object if it has it, or fetch. 
+        // For foremen, we fetch.
+        const foremen = await api.getProjectForemen(project.id);
+        const projectWithPM = projects.find(p => p.id === project.id);
+
+        const staff = [];
+        if (projectWithPM?.projectManager) {
+            staff.push({ ...projectWithPM.projectManager, isPM: true });
+        }
+        foremen.forEach(f => {
+            if (!staff.find(s => s.id === f.id)) {
+                staff.push({ ...f, isForeman: true });
+            }
+        });
+
+        setAssignedStaff(staff);
+        setAssignmentLoading(false);
+    };
+
+    const openSubObjectAssignment = async (subObject) => {
+        setShowAssignmentModal({ type: 'SUBOBJECT', id: subObject.id, name: subObject.name });
+        setAssignmentLoading(true);
+        const workers = await api.getSubObjectWorkers(subObject.id);
+        setAssignedStaff(workers.map(w => ({ ...w, isWorker: true })));
+        setAssignmentLoading(false);
+    };
+
+    const handleAssignPM = async (projectId, userId) => {
+        const res = await api.assignPM(projectId, userId);
+        if (res.success) {
+            // Refresh projects to get new PM info
+            loadProjects();
+            // Refresh modal state
+            const user = users.find(u => u.id === Number(userId));
+            setAssignedStaff(prev => {
+                const filtered = prev.filter(s => !s.isPM);
+                return [{ ...user, isPM: true }, ...filtered];
+            });
+        } else alert(res.message);
+    };
+
+    const handleAddForeman = async (projectId, userId) => {
+        const res = await api.addForeman(projectId, userId);
+        if (res.success) {
+            const user = users.find(u => u.id === Number(userId));
+            setAssignedStaff(prev => [...prev, { ...user, isForeman: true }]);
+        } else alert(res.message);
+    };
+
+    const handleRemoveForeman = async (projectId, userId) => {
+        const res = await api.removeForeman(projectId, userId);
+        if (res.success) {
+            setAssignedStaff(prev => prev.filter(s => !(s.id === userId && s.isForeman)));
+        } else alert(res.message);
+    };
+
+    const handleAddWorker = async (subObjectId, userId) => {
+        const res = await api.addSubObjectWorker(subObjectId, userId);
+        if (res.success) {
+            const user = users.find(u => u.id === Number(userId));
+            setAssignedStaff(prev => [...prev, { ...user, isWorker: true }]);
+        } else alert(res.message);
+    };
+
+    const handleRemoveWorker = async (subObjectId, userId) => {
+        const res = await api.removeSubObjectWorker(subObjectId, userId);
+        if (res.success) {
+            setAssignedStaff(prev => prev.filter(s => s.id !== userId));
+        } else alert(res.message);
     };
 
     // --- Creators ---
@@ -396,6 +477,9 @@ const EstimatorDashboard = () => {
                                 <button onClick={(e) => { e.stopPropagation(); startEditProject(project); }} className="p-2 text-slate-400 hover:text-indigo-600 transition-colors" title="Редактировать">
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                 </button>
+                                <button onClick={(e) => { e.stopPropagation(); openProjectAssignment(project); }} className="p-2 text-slate-400 hover:text-indigo-600 transition-colors" title="Ответственные">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                                </button>
                                 <button onClick={(e) => handleDeleteProject(e, project.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors" title="Удалить">
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
@@ -533,6 +617,9 @@ const EstimatorDashboard = () => {
                                                                     <div className="flex items-center gap-2 opactiy-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                                                                         <button onClick={(e) => startEditSubObject(e, subObject, object.id)} className="text-slate-400 hover:text-indigo-600" title="Ред.">
                                                                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                                                        </button>
+                                                                        <button onClick={(e) => { e.stopPropagation(); openSubObjectAssignment(subObject); }} className="text-slate-400 hover:text-indigo-600" title="Назначить рабочих">
+                                                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                                                                         </button>
                                                                         <button onClick={(e) => handleDeleteSubObject(e, subObject.id, object.id)} className="text-slate-400 hover:text-red-600" title="Уд.">
                                                                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
@@ -777,6 +864,153 @@ const EstimatorDashboard = () => {
                     </div>
                 ))}
             </div>
+
+            {/* Assignment Modal */}
+            {showAssignmentModal && (
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-zoomIn">
+                        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-indigo-50/30">
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-800">
+                                    {showAssignmentModal.type === 'PROJECT' ? 'Управление командой проекта' : 'Назначение рабочих'}
+                                </h3>
+                                <p className="text-xs text-slate-500 font-medium truncate max-w-[280px]">{showAssignmentModal.name}</p>
+                            </div>
+                            <button onClick={() => setShowAssignmentModal(null)} className="p-2 hover:bg-white rounded-full transition-colors text-slate-400">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l18 18"></path></svg>
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-6">
+                            {/* Assigned Staff List */}
+                            <div className="space-y-3">
+                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Текущий состав</h4>
+                                {assignmentLoading ? (
+                                    <div className="text-center py-4 text-slate-400 text-sm">Загрузка...</div>
+                                ) : assignedStaff.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {assignedStaff.map(s => (
+                                            <div key={`${s.id}-${s.isPM ? 'pm' : s.isForeman ? 'foreman' : 'worker'}`} className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${s.isPM ? 'bg-amber-100 text-amber-600' :
+                                                            s.isForeman ? 'bg-indigo-100 text-indigo-600' :
+                                                                'bg-emerald-100 text-emerald-600'
+                                                        }`}>
+                                                        {s.fullName.substring(0, 1)}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-slate-700">{s.fullName}</p>
+                                                        <p className="text-[10px] uppercase font-bold text-slate-400">
+                                                            {s.isPM ? 'Project Manager' : s.isForeman ? 'Foreman' : 'Worker'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                {!s.isPM && (
+                                                    <button
+                                                        onClick={() => showAssignmentModal.type === 'PROJECT' ? handleRemoveForeman(showAssignmentModal.id, s.id) : handleRemoveWorker(showAssignmentModal.id, s.id)}
+                                                        className="p-1.5 text-slate-300 hover:text-red-500 transition-colors"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-slate-400 text-xs italic">
+                                        Никто не назначен
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Add New Section */}
+                            <div className="space-y-3 pt-4 border-t border-slate-100">
+                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Добавить</h4>
+                                {showAssignmentModal.type === 'PROJECT' ? (
+                                    <div className="space-y-4">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-slate-500 uppercase ml-1">Назначить Project Manager</label>
+                                            <div className="flex gap-2">
+                                                <select
+                                                    id="pm-select"
+                                                    className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-400"
+                                                >
+                                                    <option value="">Выберите PM...</option>
+                                                    {users.filter(u => u.role === 'PM' || u.role === 'SUPER_ADMIN').map(u => (
+                                                        <option key={u.id} value={u.id}>{u.fullName}</option>
+                                                    ))}
+                                                </select>
+                                                <button
+                                                    onClick={() => {
+                                                        const id = document.getElementById('pm-select').value;
+                                                        if (id) handleAssignPM(showAssignmentModal.id, id);
+                                                    }}
+                                                    className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-2 rounded-lg text-sm font-bold shadow-sm"
+                                                >
+                                                    ОК
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-slate-500 uppercase ml-1">Добавить Foremen</label>
+                                            <div className="flex gap-2">
+                                                <select
+                                                    id="foreman-select"
+                                                    className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-400"
+                                                >
+                                                    <option value="">Выберите прораба...</option>
+                                                    {users.filter(u => u.role === 'FOREMAN').map(u => (
+                                                        <option key={u.id} value={u.id}>{u.fullName}</option>
+                                                    ))}
+                                                </select>
+                                                <button
+                                                    onClick={() => {
+                                                        const id = document.getElementById('foreman-select').value;
+                                                        if (id) handleAddForeman(showAssignmentModal.id, id);
+                                                    }}
+                                                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-sm font-bold shadow-sm"
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-slate-500 uppercase ml-1">Добавить рабочего</label>
+                                        <div className="flex gap-2">
+                                            <select
+                                                id="worker-select"
+                                                className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-400"
+                                            >
+                                                <option value="">Выберите рабочего...</option>
+                                                {users.filter(u => u.role === 'WORKER').map(u => (
+                                                    <option key={u.id} value={u.id}>{u.fullName}</option>
+                                                ))}
+                                            </select>
+                                            <button
+                                                onClick={() => {
+                                                    const id = document.getElementById('worker-select').value;
+                                                    if (id) handleAddWorker(showAssignmentModal.id, id);
+                                                }}
+                                                className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-sm font-bold shadow-sm"
+                                            >
+                                                +
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="p-4 bg-slate-50 flex justify-end">
+                            <button onClick={() => setShowAssignmentModal(null)} className="px-6 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-sm shadow-sm hover:bg-slate-50 transition-colors">
+                                Закрыть
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

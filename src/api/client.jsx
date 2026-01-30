@@ -80,14 +80,23 @@ export const apiClient = {
             switch (userRole) {
                 case 'WORKER':
                     return allTasks.filter(t =>
-                        // Assignee check - only show tasks worker can edit
-                        t.assigneeIds && t.assigneeIds.includes(userId) &&
+                        // Show tasks in assigned sub-objects OR tasks specifically assigned to worker
+                        ((t.subObjectWorkerIds && t.subObjectWorkerIds.includes(userId)) ||
+                            (t.assigneeIds && t.assigneeIds.includes(userId))) &&
                         ['ACTIVE', 'REWORK_FOREMAN'].includes(t.status)
                     );
                 case 'FOREMAN':
-                    return allTasks.filter(t => t.status === 'UNDER_REVIEW_FOREMAN' || t.status === 'REWORK_PM');
+                    return allTasks.filter(t =>
+                        // Show tasks in projects where user is assigned as foreman
+                        (t.projectForemanIds && t.projectForemanIds.includes(userId)) &&
+                        ['UNDER_REVIEW_FOREMAN', 'REWORK_PM'].includes(t.status)
+                    );
                 case 'PM':
-                    return allTasks.filter(t => t.status === 'UNDER_REVIEW_PM');
+                    return allTasks.filter(t =>
+                        // Show tasks in projects where user is the Project Manager
+                        t.projectManagerId === userId &&
+                        t.status === 'UNDER_REVIEW_PM'
+                    );
                 case 'ESTIMATOR':
                     return allTasks;
                 case 'SUPER_ADMIN':
@@ -414,6 +423,77 @@ export const apiClient = {
         } catch (error) {
             console.error("Update checklist remark error", error);
             return { success: false, message: error.response?.data?.message };
+        }
+    },
+
+    // --- Assignment APIs ---
+    assignPM: async (projectId, userId) => {
+        try {
+            await api.post(`/api/projects/${projectId}/assign-pm?userId=${userId}`);
+            return { success: true };
+        } catch (error) {
+            console.error("Assign PM error", error);
+            return { success: false, message: error.response?.data?.message };
+        }
+    },
+
+    addForeman: async (projectId, foremanId) => {
+        try {
+            await api.post(`/api/projects/${projectId}/foremen/${foremanId}`);
+            return { success: true };
+        } catch (error) {
+            console.error("Add foreman error", error);
+            return { success: false, message: error.response?.data?.message };
+        }
+    },
+
+    removeForeman: async (projectId, foremanId) => {
+        try {
+            await api.delete(`/api/projects/${projectId}/foremen/${foremanId}`);
+            return { success: true };
+        } catch (error) {
+            console.error("Remove foreman error", error);
+            return { success: false, message: error.response?.data?.message };
+        }
+    },
+
+    getProjectForemen: async (projectId) => {
+        try {
+            const response = await api.get(`/api/projects/${projectId}/foremen`);
+            return response.data;
+        } catch (error) {
+            console.error("Get project foremen error", error);
+            return [];
+        }
+    },
+
+    addSubObjectWorker: async (subObjectId, workerId) => {
+        try {
+            await api.post(`/api/sub-objects/${subObjectId}/workers/${workerId}`);
+            return { success: true };
+        } catch (error) {
+            console.error("Add sub-object worker error", error);
+            return { success: false, message: error.response?.data?.message };
+        }
+    },
+
+    removeSubObjectWorker: async (subObjectId, workerId) => {
+        try {
+            await api.delete(`/api/sub-objects/${subObjectId}/workers/${workerId}`);
+            return { success: true };
+        } catch (error) {
+            console.error("Remove sub-object worker error", error);
+            return { success: false, message: error.response?.data?.message };
+        }
+    },
+
+    getSubObjectWorkers: async (subObjectId) => {
+        try {
+            const response = await api.get(`/api/sub-objects/${subObjectId}/workers`);
+            return response.data;
+        } catch (error) {
+            console.error("Get sub-object workers error", error);
+            return [];
         }
     }
 };

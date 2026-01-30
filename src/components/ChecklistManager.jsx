@@ -30,6 +30,8 @@ const ChecklistManager = ({ taskId, onUpdate }) => {
             setNewItemDesc('');
             setNewItemPhotoRequired(false);
             onUpdate?.();
+        } else {
+            alert(result.message || 'Ошибка при добавлении пункта');
         }
         setLoading(false);
     };
