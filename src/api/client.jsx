@@ -77,30 +77,35 @@ export const apiClient = {
             });
 
             // Filter based on role (replicating mock logic)
+            // AND Filter out DRAFT projects for non-estimatros/admins
+            const visibleTasks = allTasks.filter(t =>
+                t.projectStatus === 'PUBLISHED' || ['ESTIMATOR', 'SUPER_ADMIN'].includes(userRole)
+            );
+
             switch (userRole) {
                 case 'WORKER':
-                    return allTasks.filter(t =>
+                    return visibleTasks.filter(t =>
                         // Show tasks in assigned sub-objects OR tasks specifically assigned to worker
                         ((t.subObjectWorkerIds && t.subObjectWorkerIds.includes(userId)) ||
                             (t.assigneeIds && t.assigneeIds.includes(userId))) &&
                         ['ACTIVE', 'REWORK_FOREMAN'].includes(t.status)
                     );
                 case 'FOREMAN':
-                    return allTasks.filter(t =>
+                    return visibleTasks.filter(t =>
                         // Show tasks in projects where user is assigned as foreman
                         (t.projectForemanIds && t.projectForemanIds.includes(userId)) &&
                         ['UNDER_REVIEW_FOREMAN', 'REWORK_PM'].includes(t.status)
                     );
                 case 'PM':
-                    return allTasks.filter(t =>
+                    return visibleTasks.filter(t =>
                         // Show tasks in projects where user is the Project Manager
                         t.projectManagerId === userId &&
                         t.status === 'UNDER_REVIEW_PM'
                     );
                 case 'ESTIMATOR':
-                    return allTasks;
+                    return visibleTasks;
                 case 'SUPER_ADMIN':
-                    return allTasks;
+                    return visibleTasks;
                 default:
                     return [];
             }
@@ -167,9 +172,13 @@ export const apiClient = {
 
     // --- Estimator / CRUD Methods ---
 
-    getProjects: async () => {
+    getProjects: async (userRole) => {
         try {
             const response = await api.get('/api/projects');
+            // If role is provided, filter drafts
+            if (userRole && !['ESTIMATOR', 'SUPER_ADMIN'].includes(userRole)) {
+                return response.data.filter(p => p.status === 'PUBLISHED');
+            }
             return response.data;
         } catch (error) {
             console.error("Get projects error", error);
@@ -284,6 +293,16 @@ export const apiClient = {
         } catch (error) {
             console.error("Delete project error", error);
             return { success: false, message: error.response?.data?.message || 'Failed to delete project' };
+        }
+    },
+
+    publishProject: async (id) => {
+        try {
+            await api.post(`/api/projects/${id}/publish`);
+            return { success: true };
+        } catch (error) {
+            console.error("Publish project error", error);
+            return { success: false, message: error.response?.data?.message || 'Failed to publish project' };
         }
     },
 
@@ -463,6 +482,26 @@ export const apiClient = {
             return { success: true };
         } catch (error) {
             console.error("Mark all read error", error);
+            return { success: false };
+        }
+    },
+
+    deleteNotification: async (id) => {
+        try {
+            await api.delete(`/api/notifications/${id}`);
+            return { success: true };
+        } catch (error) {
+            console.error("Delete notification error", error);
+            return { success: false };
+        }
+    },
+
+    clearNotifications: async () => {
+        try {
+            await api.delete('/api/notifications/clear-history');
+            return { success: true };
+        } catch (error) {
+            console.error("Clear notifications error", error);
             return { success: false };
         }
     },

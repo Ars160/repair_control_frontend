@@ -199,6 +199,17 @@ const EstimatorDashboard = () => {
         }
     };
 
+    const handlePublishProject = async (e, id) => {
+        e.stopPropagation();
+        if (window.confirm('Опубликовать проект? Это отправит уведомления всем участникам.')) {
+            const res = await api.publishProject(id);
+            if (res.success) {
+                setProjects(projects.map(p => p.id === id ? { ...p, status: 'PUBLISHED' } : p));
+                alert('Проект опубликован!');
+            } else alert(res.message);
+        }
+    };
+
     // Object
     const handleCreateObject = async (e, projectId) => {
         e.preventDefault();
@@ -488,7 +499,13 @@ const EstimatorDashboard = () => {
                                     <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                                 </div>
                                 <div className="min-w-0">
-                                    <h2 className="text-lg sm:text-xl font-bold text-slate-800 group-hover:text-indigo-600 transition-colors truncate">{project.name}</h2>
+                                    <div className="flex items-center gap-2">
+                                        <h2 className="text-lg sm:text-xl font-bold text-slate-800 group-hover:text-indigo-600 transition-colors truncate">{project.name}</h2>
+                                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-tight ${project.status === 'PUBLISHED' ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-600'
+                                            }`}>
+                                            {project.status === 'PUBLISHED' ? 'Опубликован' : 'Черновик'}
+                                        </span>
+                                    </div>
                                     <p className="text-xs sm:text-sm text-slate-500 truncate">{project.description || 'Нет описания'}</p>
                                 </div>
                             </div>
@@ -500,6 +517,15 @@ const EstimatorDashboard = () => {
                                     <button onClick={(e) => { e.stopPropagation(); openProjectAssignment(project); }} className="p-2 text-slate-400 hover:text-indigo-600 transition-colors" title="Ответственные">
                                         <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                                     </button>
+                                    {project.status !== 'PUBLISHED' && (
+                                        <button
+                                            onClick={(e) => handlePublishProject(e, project.id)}
+                                            className="ml-1 px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-bold shadow-sm transition-all"
+                                            title="Опубликовать"
+                                        >
+                                            Опубликовать
+                                        </button>
+                                    )}
                                     <button onClick={(e) => handleDeleteProject(e, project.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors" title="Удалить">
                                         <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                     </button>

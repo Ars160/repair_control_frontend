@@ -11,6 +11,7 @@ import ReviewTask from './pages/ReviewTask';
 import Analytics from './pages/Analytics';
 import ProjectDetails from './pages/ProjectDetails';
 import NotificationBell from './components/NotificationBell';
+import DraftProjects from './pages/DraftProjects';
 
 // A wrapper for routes that require a logged-in user.
 // Redirects to the login page if the user is not authenticated.
@@ -40,6 +41,7 @@ function Layout() {
                 <div className="hidden sm:flex items-center gap-4">
                   <Link to="/dashboard" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Обзор</Link>
                   <Link to="/analytics" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Аналитика</Link>
+                  <Link to="/drafts" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Черновики</Link>
                 </div>
               )}
             </div>
@@ -64,6 +66,7 @@ function Layout() {
             <div className="flex sm:hidden items-center gap-4 pb-2 border-t border-slate-50 pt-2">
               <Link to="/dashboard" className="text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-indigo-600">Обзор</Link>
               <Link to="/analytics" className="text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-indigo-600">Аналитика</Link>
+              <Link to="/drafts" className="text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-indigo-600">Черновики</Link>
             </div>
           )}
         </nav>
@@ -87,6 +90,7 @@ function App() {
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/analytics" element={<Analytics />} />
+        <Route path="/drafts" element={<DraftProjects />} />
         <Route path="/project/:id" element={<ProjectDetails />} />
         <Route path="/tasks/:id" element={<TaskDetail />} />
         <Route path="/review/:id" element={<ReviewTask />} />

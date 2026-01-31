@@ -34,19 +34,21 @@ const ManagementDashboard = ({ user }) => {
     // --- Analytics Calculations ---
 
     const stats = useMemo(() => {
-        const total = tasks.length;
-        const completed = tasks.filter(t => t.status === STATUSES.COMPLETED).length;
-        const pendingPM = tasks.filter(t => t.status === STATUSES.UNDER_REVIEW_PM).length;
-        const rework = tasks.filter(t => t.status === STATUSES.REWORK || t.status === STATUSES.REWORK_PM || t.status === STATUSES.REWORK_FOREMAN).length;
+        const publishedTasks = tasks.filter(t => t.projectStatus === 'PUBLISHED');
+        const total = publishedTasks.length;
+        const completed = publishedTasks.filter(t => t.status === STATUSES.COMPLETED).length;
+        const pendingPM = publishedTasks.filter(t => t.status === STATUSES.UNDER_REVIEW_PM).length;
+        const rework = publishedTasks.filter(t => t.status === STATUSES.REWORK || t.status === STATUSES.REWORK_PM || t.status === STATUSES.REWORK_FOREMAN).length;
 
         const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-        return { total, completed, pendingPM, rework, progress };
+        return { total, completed, pendingPM, rework, progress, publishedTasks };
     }, [tasks]);
 
     const projectAnalytics = useMemo(() => {
+        const activeProjects = projects.filter(p => p.status === 'PUBLISHED');
         // Map tasks to projects
-        const analytics = projects.map(project => {
+        const analytics = activeProjects.map(project => {
             const projectTasks = tasks.filter(t => String(t.projectName).toLowerCase().includes(project.name.toLowerCase()));
             const totalInProject = projectTasks.length;
             const completedInProject = projectTasks.filter(t => t.status === STATUSES.COMPLETED).length;
@@ -63,9 +65,13 @@ const ManagementDashboard = ({ user }) => {
         return analytics.sort((a, b) => b.progress - a.progress);
     }, [tasks, projects]);
 
+    const draftProjects = useMemo(() => {
+        return projects.filter(p => p.status === 'DRAFT');
+    }, [projects]);
+
     const urgentTasks = useMemo(() => {
         return tasks
-            .filter(t => t.status === STATUSES.UNDER_REVIEW_PM)
+            .filter(t => t.status === STATUSES.UNDER_REVIEW_PM && t.projectStatus === 'PUBLISHED')
             .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
             .slice(0, 5);
     }, [tasks]);
@@ -176,10 +182,10 @@ const ManagementDashboard = ({ user }) => {
                         <h2 className="text-lg font-bold text-slate-800 mb-6">Распределение статусов</h2>
                         <div className="space-y-4">
                             <StatusRow label="Завершено" count={stats.completed} total={stats.total} color="bg-emerald-500" />
-                            <StatusRow label="В работе" count={tasks.filter(t => t.status === STATUSES.ACTIVE).length} total={stats.total} color="bg-blue-500" />
-                            <StatusRow label="На проверке" count={tasks.filter(t => t.status.includes('REVIEW')).length} total={stats.total} color="bg-amber-500" />
+                            <StatusRow label="В работе" count={stats.publishedTasks?.filter(t => t.status === STATUSES.ACTIVE).length || 0} total={stats.total} color="bg-blue-500" />
+                            <StatusRow label="На проверке" count={stats.publishedTasks?.filter(t => t.status.includes('REVIEW')).length || 0} total={stats.total} color="bg-amber-500" />
                             <StatusRow label="Доработка" count={stats.rework} total={stats.total} color="bg-rose-500" />
-                            <StatusRow label="Ожидание" count={tasks.filter(t => t.status === STATUSES.LOCKED).length} total={stats.total} color="bg-slate-300" />
+                            <StatusRow label="Ожидание" count={stats.publishedTasks?.filter(t => t.status === STATUSES.LOCKED).length || 0} total={stats.total} color="bg-slate-300" />
                         </div>
                     </div>
                 </div>

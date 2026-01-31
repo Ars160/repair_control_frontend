@@ -68,6 +68,28 @@ const NotificationBell = () => {
         }
     };
 
+    const handleDeleteNotification = async (id, event) => {
+        if (event) event.stopPropagation();
+        try {
+            await api.deleteNotification(id);
+            setNotifications(prev => prev.filter(n => n.id !== id));
+            setAllNotifications(prev => prev.filter(n => n.id !== id));
+        } catch (error) {
+            console.error("Failed to delete notification", error);
+        }
+    };
+
+    const handleClearHistory = async () => {
+        if (!window.confirm('Очистить всю историю уведомлений?')) return;
+        try {
+            await api.clearNotifications();
+            setAllNotifications([]);
+            setNotifications([]);
+        } catch (error) {
+            console.error("Failed to clear history", error);
+        }
+    };
+
     const handleNotificationClick = async (notification) => {
         // Mark as read
         if (!notification.isRead) {
@@ -153,13 +175,21 @@ const NotificationBell = () => {
                                                     )}
                                                 </div>
                                             </div>
-                                            {!notification.isRead && (
+                                            {!notification.isRead ? (
                                                 <button
                                                     onClick={(e) => handleMarkAsRead(notification.id, e)}
                                                     className="shrink-0 text-indigo-400 hover:text-indigo-600 p-1 rounded-full hover:bg-indigo-100 transition-all"
                                                     title="Пометить как прочитанное"
                                                 >
                                                     <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={(e) => handleDeleteNotification(notification.id, e)}
+                                                    className="shrink-0 text-slate-300 hover:text-red-500 p-1 rounded-full hover:bg-red-50 transition-all lg:opacity-0 group-hover:opacity-100"
+                                                    title="Удалить навсегда"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                                 </button>
                                             )}
                                         </div>
@@ -170,14 +200,24 @@ const NotificationBell = () => {
                     </div>
 
                     {/* Footer Actions */}
-                    {notifications.length > 0 && activeTab === 'NEW' && (
-                        <div className="bg-slate-50 px-4 py-3 rounded-b-2xl text-center border-t border-slate-100 flex-none">
-                            <button
-                                onClick={handleMarkAllAsRead}
-                                className="text-xs font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-wider transition-colors"
-                            >
-                                Прочитать все
-                            </button>
+                    {displayedNotifications.length > 0 && (
+                        <div className="bg-slate-50 px-4 py-3 rounded-b-2xl text-center border-t border-slate-100 flex-none flex gap-2 justify-center">
+                            {activeTab === 'NEW' && notifications.length > 0 && (
+                                <button
+                                    onClick={handleMarkAllAsRead}
+                                    className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-wider transition-colors"
+                                >
+                                    Прочитать все
+                                </button>
+                            )}
+                            {activeTab === 'HISTORY' && allNotifications.length > 0 && (
+                                <button
+                                    onClick={handleClearHistory}
+                                    className="text-[10px] font-bold text-red-400 hover:text-red-600 uppercase tracking-wider transition-colors"
+                                >
+                                    Очистить историю
+                                </button>
+                            )}
                         </div>
                     )}
                 </div>
