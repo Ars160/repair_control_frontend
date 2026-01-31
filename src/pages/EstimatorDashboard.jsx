@@ -38,6 +38,7 @@ const EstimatorDashboard = () => {
     });
 
     const [users, setUsers] = useState([]);
+    const [availableTaskWorkers, setAvailableTaskWorkers] = useState([]);
 
     // Assignment UI states
     const [showAssignmentModal, setShowAssignmentModal] = useState(null); // { type: 'PROJECT' | 'SUBOBJECT', id, name }
@@ -92,15 +93,9 @@ const EstimatorDashboard = () => {
     const openProjectAssignment = async (project) => {
         setShowAssignmentModal({ type: 'PROJECT', id: project.id, name: project.name });
         setAssignmentLoading(true);
-        // We can get PM from project object if it has it, or fetch. 
         // For foremen, we fetch.
         const foremen = await api.getProjectForemen(project.id);
-        const projectWithPM = projects.find(p => p.id === project.id);
-
         const staff = [];
-        if (projectWithPM?.projectManager) {
-            staff.push({ ...projectWithPM.projectManager, isPM: true });
-        }
         foremen.forEach(f => {
             if (!staff.find(s => s.id === f.id)) {
                 staff.push({ ...f, isForeman: true });
@@ -119,21 +114,12 @@ const EstimatorDashboard = () => {
         setAssignmentLoading(false);
     };
 
-    const handleAssignPM = async (projectId, userId) => {
-        const res = await api.assignPM(projectId, userId);
-        if (res.success) {
-            // Refresh projects to get new PM info
-            loadProjects();
-            // Refresh modal state
-            const user = users.find(u => u.id === Number(userId));
-            setAssignedStaff(prev => {
-                const filtered = prev.filter(s => !s.isPM);
-                return [{ ...user, isPM: true }, ...filtered];
-            });
-        } else alert(res.message);
-    };
 
     const handleAddForeman = async (projectId, userId) => {
+        if (assignedStaff.some(s => s.id === Number(userId) && s.isForeman)) {
+            alert("Этот сотрудник уже назначен прорабом.");
+            return;
+        }
         const res = await api.addForeman(projectId, userId);
         if (res.success) {
             const user = users.find(u => u.id === Number(userId));
@@ -149,6 +135,10 @@ const EstimatorDashboard = () => {
     };
 
     const handleAddWorker = async (subObjectId, userId) => {
+        if (assignedStaff.some(s => s.id === Number(userId) && s.isWorker)) {
+            alert("Этот сотрудник уже назначен на этот объект.");
+            return;
+        }
         const res = await api.addSubObjectWorker(subObjectId, userId);
         if (res.success) {
             const user = users.find(u => u.id === Number(userId));
@@ -351,8 +341,36 @@ const EstimatorDashboard = () => {
         }
     };
 
-    const startEditTask = (e, task, subObjectId) => {
+    const startCreateTask = async (e, subObjectId) => {
         e.stopPropagation();
+        if (showTaskForm === subObjectId && !editingTaskId) {
+            setShowTaskForm(null);
+        } else {
+            // Load allowed workers
+            try {
+                const workers = await api.getSubObjectWorkers(subObjectId);
+                setAvailableTaskWorkers(workers);
+            } catch (err) {
+                console.error(err);
+                setAvailableTaskWorkers([]); // Fallback
+            }
+
+            setShowTaskForm(subObjectId);
+            setEditingTaskId(null);
+            setNewTask({ title: '', taskType: 'SEQUENTIAL', deadline: '', assigneeIds: [], priority: 'MEDIUM', placement: 'END', placementTargetId: '', checklist: [] });
+        }
+    };
+
+    const startEditTask = async (e, task, subObjectId) => {
+        e.stopPropagation();
+        try {
+            const workers = await api.getSubObjectWorkers(subObjectId);
+            setAvailableTaskWorkers(workers);
+        } catch (err) {
+            console.error(err);
+            setAvailableTaskWorkers([]);
+        }
+
         setNewTask({
             title: task.title,
             taskType: task.taskType || 'SEQUENTIAL',
@@ -642,14 +660,7 @@ const EstimatorDashboard = () => {
                                                                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                                                         </button>
                                                                         <button
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                if (showTaskForm === subObject.id && editingTaskId) {
-                                                                                    setShowTaskForm(null); setEditingTaskId(null); setNewTask({ title: '', taskType: 'SEQUENTIAL', deadline: '', assigneeIds: [], checklist: [] });
-                                                                                } else {
-                                                                                    setShowTaskForm(subObject.id); setEditingTaskId(null); setNewTask({ title: '', taskType: 'SEQUENTIAL', deadline: '', assigneeIds: [], checklist: [] });
-                                                                                }
-                                                                            }}
+                                                                            onClick={(e) => startCreateTask(e, subObject.id)}
                                                                             className="text-white bg-indigo-500 hover:bg-indigo-600 w-5 h-5 rounded flex items-center justify-center text-sm"
                                                                             title="Добавить задачу"
                                                                         >
@@ -697,7 +708,7 @@ const EstimatorDashboard = () => {
                                                                                     setNewTask({ ...newTask, assigneeIds: values });
                                                                                 }}
                                                                             >
-                                                                                {users.filter(u => u.role === 'WORKER').map(u => (
+                                                                                {availableTaskWorkers.map(u => (
                                                                                     <option key={u.id} value={u.id}>{u.fullName}</option>
                                                                                 ))}
                                                                             </select>
@@ -953,29 +964,6 @@ const EstimatorDashboard = () => {
                                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Добавить</h4>
                                 {showAssignmentModal.type === 'PROJECT' ? (
                                     <div className="space-y-4">
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-bold text-slate-500 uppercase ml-1">Назначить Project Manager</label>
-                                            <div className="flex gap-2">
-                                                <select
-                                                    id="pm-select"
-                                                    className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-400"
-                                                >
-                                                    <option value="">Выберите PM...</option>
-                                                    {users.filter(u => u.role === 'PM' || u.role === 'SUPER_ADMIN').map(u => (
-                                                        <option key={u.id} value={u.id}>{u.fullName}</option>
-                                                    ))}
-                                                </select>
-                                                <button
-                                                    onClick={() => {
-                                                        const id = document.getElementById('pm-select').value;
-                                                        if (id) handleAssignPM(showAssignmentModal.id, id);
-                                                    }}
-                                                    className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-2 rounded-lg text-sm font-bold shadow-sm"
-                                                >
-                                                    ОК
-                                                </button>
-                                            </div>
-                                        </div>
                                         <div className="space-y-1">
                                             <label className="text-[10px] font-bold text-slate-500 uppercase ml-1">Добавить Foremen</label>
                                             <div className="flex gap-2">

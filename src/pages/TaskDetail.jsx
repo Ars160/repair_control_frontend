@@ -6,6 +6,7 @@ import api from '../api/client';
 import { STATUSES, ROLES } from '../utils/mockData';
 import ChecklistSection from '../components/ChecklistSection';
 import PhotoUpload from '../components/PhotoUpload';
+import ApprovalHistory from '../components/ApprovalHistory';
 
 // Helper to translate status to Russian
 const translateStatus = (status) => {
@@ -179,6 +180,8 @@ const TaskDetail = () => {
             </div>
 
             {/* History/Notes */}
+            <ApprovalHistory approvals={task.approvals} />
+
             {(task.rejectionReason || task.foremanNote) && (
                 <div className="space-y-4 mb-6">
                     {task.rejectionReason && (

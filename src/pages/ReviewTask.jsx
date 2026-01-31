@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import api from '../api/client';
 import { STATUSES, ROLES } from '../utils/mockData';
 import ChecklistSection from '../components/ChecklistSection';
+import ApprovalHistory from '../components/ApprovalHistory';
 
 const ReviewTask = () => {
     const { id } = useParams();
@@ -227,6 +228,8 @@ const ReviewTask = () => {
                 </div>
 
                 {/* History/Notes */}
+                <ApprovalHistory approvals={task.approvals} />
+
                 {(task.rejectionReason || task.foremanNote) && (
                     <div className="space-y-4 mb-6">
                         {task.rejectionReason && (
