@@ -426,6 +426,47 @@ export const apiClient = {
         }
     },
 
+    // --- Notification APIs ---
+    getUnreadNotifications: async () => {
+        try {
+            const response = await api.get('/api/notifications');
+            return response.data;
+        } catch (error) {
+            console.error("Get notifications error", error);
+            return [];
+        }
+    },
+
+    getAllNotifications: async () => {
+        try {
+            const response = await api.get('/api/notifications/all');
+            return response.data;
+        } catch (error) {
+            console.error("Get all notifications error", error);
+            return [];
+        }
+    },
+
+    markNotificationAsRead: async (id) => {
+        try {
+            await api.post(`/api/notifications/${id}/read`);
+            return { success: true };
+        } catch (error) {
+            console.error("Mark read error", error);
+            return { success: false };
+        }
+    },
+
+    markAllNotificationsAsRead: async () => {
+        try {
+            await api.post('/api/notifications/read-all');
+            return { success: true };
+        } catch (error) {
+            console.error("Mark all read error", error);
+            return { success: false };
+        }
+    },
+
     // --- Assignment APIs ---
     assignPM: async (projectId, userId) => {
         try {

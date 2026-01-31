@@ -10,6 +10,7 @@ import TaskDetail from './pages/TaskDetail';
 import ReviewTask from './pages/ReviewTask';
 import Analytics from './pages/Analytics';
 import ProjectDetails from './pages/ProjectDetails';
+import NotificationBell from './components/NotificationBell';
 
 // A wrapper for routes that require a logged-in user.
 // Redirects to the login page if the user is not authenticated.
@@ -43,6 +44,7 @@ function Layout() {
               )}
             </div>
             <div className="flex items-center">
+              <NotificationBell />
               <div className="flex flex-col items-end mr-3 sm:mr-4">
                 <span className="text-xs sm:text-sm font-bold text-slate-800 leading-none truncate max-w-[100px] sm:max-w-none">{user.fullName.split(' ')[0]}</span>
                 <span className="text-[9px] sm:text-[10px] font-medium text-slate-500 uppercase tracking-wider mt-0.5">{user.role}</span>
