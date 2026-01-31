@@ -88,7 +88,7 @@ export const apiClient = {
                         // Show tasks in assigned sub-objects OR tasks specifically assigned to worker
                         ((t.subObjectWorkerIds && t.subObjectWorkerIds.includes(userId)) ||
                             (t.assigneeIds && t.assigneeIds.includes(userId))) &&
-                        ['ACTIVE', 'REWORK_FOREMAN'].includes(t.status)
+                        ['ACTIVE', 'REWORK_FOREMAN', 'LOCKED'].includes(t.status)
                     );
                 case 'FOREMAN':
                     return visibleTasks.filter(t =>

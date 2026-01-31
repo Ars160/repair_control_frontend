@@ -58,7 +58,7 @@ const TaskCard = ({ task, userRole }) => {
 
     // Determine the correct link based on user role and task status
     const getTaskLink = () => {
-        if (task.status === STATUSES.LOCKED) return '#';
+        // Allow workers to view locked tasks
         if ((userRole === ROLES.FOREMAN && (task.status === STATUSES.UNDER_REVIEW_FOREMAN || task.status === STATUSES.REWORK_PM)) ||
             (userRole === ROLES.PM && task.status === STATUSES.UNDER_REVIEW_PM)) {
             return `/review/${task.id}`;
@@ -76,9 +76,8 @@ const TaskCard = ({ task, userRole }) => {
         <Link
             to={getTaskLink()}
             className={`block bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-100 transition-all duration-300 group
-                ${isLocked ? 'opacity-70 cursor-not-allowed bg-slate-50' : 'hover-card active:scale-[0.98]'}
+                ${isLocked ? 'opacity-70 bg-slate-50 hover:opacity-100 hover:border-slate-200 cursor-pointer' : 'hover-card active:scale-[0.98]'}
             `}
-            onClick={e => isLocked && e.preventDefault()}
         >
             <div className="flex justify-between items-start mb-3 sm:mb-4">
                 <div className="flex-1 min-w-0 mr-2">

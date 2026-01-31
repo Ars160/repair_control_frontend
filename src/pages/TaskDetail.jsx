@@ -179,6 +179,23 @@ const TaskDetail = () => {
                 </div>
             </div>
 
+            {/* Locked Task Banner for Workers */}
+            {task.status === STATUSES.LOCKED && user?.role === ROLES.WORKER && (
+                <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-xl animate-pulse">
+                    <div className="flex">
+                        <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m0 0v2m0-2h2m-2 0H10m10-5a9 9 0 11-18 0 9 9 0 0118 0zM12 9v2m0-2h.01"></path></svg>
+                        </div>
+                        <div className="ml-3">
+                            <h3 className="text-sm font-bold text-amber-800 uppercase tracking-tight">Задача заблокирована</h3>
+                            <p className="text-xs text-amber-700 mt-1 font-medium italic">
+                                Ожидание завершения предыдущих этапов. Сейчас доступен только просмотр для планирования работ.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* History/Notes */}
             <ApprovalHistory approvals={task.approvals} />
 
