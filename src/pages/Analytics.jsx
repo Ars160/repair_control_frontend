@@ -45,60 +45,81 @@ const Analytics = () => {
             </div>
 
             {/* Performance Overview */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-sm relative overflow-hidden">
-                    <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-6 mb-8">
-                        <div>
-                            <h3 className="text-lg font-bold text-slate-800 mb-1">Эффективность выполнения</h3>
-                            <p className="text-sm text-slate-400">Средний процент завершения работ по компании</p>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 card-premium p-6 sm:p-10 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50/50 rounded-full blur-3xl -mr-32 -mt-32 transition-transform group-hover:scale-110 duration-700"></div>
+                    <div className="relative z-10">
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-8 mb-10">
+                            <div>
+                                <h3 className="text-xl font-black text-slate-800 mb-2">Эффективность выполнения</h3>
+                                <p className="text-sm text-slate-500 font-medium">Общий показатель прогресса по всем активным объектам в Байберге</p>
+                            </div>
+                            <div className="shrink-0 flex items-center justify-center">
+                                <div className="w-24 h-24 sm:w-28 sm:h-28 relative">
+                                    <svg className="w-full h-full transform -rotate-90">
+                                        <circle cx="56" cy="56" r="48" stroke="currentColor" strokeWidth="10" fill="transparent" className="text-slate-100" />
+                                        <circle cx="56" cy="56" r="48" stroke="currentColor" strokeWidth="10" fill="transparent"
+                                            strokeDasharray={301.6}
+                                            strokeDashoffset={301.6 - (301.6 * globalStats.completionRate) / 100}
+                                            className="text-indigo-600 transition-all duration-1000 ease-out"
+                                            strokeLinecap="round"
+                                        />
+                                    </svg>
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                        <span className="text-2xl font-black text-slate-800 leading-none">{globalStats.completionRate}%</span>
+                                        <span className="text-[8px] font-bold text-slate-400 uppercase mt-1">Готово</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div className="shrink-0">
-                            <div className="w-20 h-20 sm:w-24 sm:h-24 relative">
-                                <svg className="w-full h-full transform -rotate-90">
-                                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-indigo-50" />
-                                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent"
-                                        strokeDasharray={251.2}
-                                        strokeDashoffset={251.2 - (251.2 * globalStats.completionRate) / 100}
-                                        className="text-indigo-600 transition-all duration-1000"
-                                        strokeLinecap="round"
-                                    />
-                                </svg>
-                                <div className="absolute inset-0 flex items-center justify-center text-lg sm:text-xl font-bold text-slate-800">
-                                    {globalStats.completionRate}%
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 pt-8 border-t border-slate-100">
+                            <div className="space-y-1">
+                                <div className="text-3xl font-black text-slate-800 tracking-tight">{globalStats.completed}</div>
+                                <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                                    Завершено
+                                </div>
+                            </div>
+                            <div className="space-y-1">
+                                <div className="text-3xl font-black text-slate-800 tracking-tight">{globalStats.inProgress}</div>
+                                <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                                    В работе
+                                </div>
+                            </div>
+                            <div className="col-span-2 sm:col-span-1 space-y-1">
+                                <div className="text-3xl font-black text-rose-500 tracking-tight">{globalStats.delayed}</div>
+                                <div className="text-[10px] font-black text-rose-400 uppercase tracking-widest flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse"></span>
+                                    Доработки
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 sm:gap-8 pt-6 border-t border-slate-50">
-                        <div>
-                            <div className="text-xl sm:text-2xl font-bold text-slate-800">{globalStats.completed}</div>
-                            <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest">Завершено</div>
-                        </div>
-                        <div>
-                            <div className="text-xl sm:text-2xl font-bold text-slate-800">{globalStats.inProgress}</div>
-                            <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest">В работе</div>
-                        </div>
-                        <div className="col-span-2 sm:col-span-1 border-t sm:border-t-0 pt-4 sm:pt-0">
-                            <div className="text-xl sm:text-2xl font-bold text-rose-500">{globalStats.delayed}</div>
-                            <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest">Доработки</div>
-                        </div>
-                    </div>
                 </div>
 
-                <div className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-3xl p-8 text-white shadow-xl shadow-indigo-200">
-                    <h3 className="text-lg font-bold mb-2">Общая нагрузка</h3>
-                    <div className="text-5xl font-bold mb-6">{globalStats.total}</div>
-                    <p className="text-indigo-100 text-sm mb-8 leading-relaxed">
-                        Общее количество активных и запланированных задач на всех строительных площадках на текущий момент.
-                    </p>
-                    <div className="p-4 bg-white/10 rounded-2xl flex items-center gap-4">
-                        <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                <div className="bg-slate-900 rounded-3xl p-8 sm:p-10 text-white shadow-2xl shadow-slate-900/20 relative overflow-hidden group">
+                    <div className="absolute bottom-0 right-0 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl -mb-24 -mr-24 transition-transform group-hover:scale-150 duration-700"></div>
+                    <div className="relative z-10 h-full flex flex-col">
+                        <h3 className="text-lg font-bold text-indigo-300 mb-2 uppercase tracking-widest">Общая нагрузка</h3>
+                        <div className="text-6xl sm:text-7xl font-black mb-6 tracking-tighter text-white">
+                            {globalStats.total}
+                            <span className="text-xl text-indigo-400 ml-2 uppercase font-black tracking-widest">Задач</span>
                         </div>
-                        <div>
-                            <div className="text-xs font-bold uppercase tracking-wider opacity-60">Тренды</div>
-                            <div className="text-sm font-bold">+12% к прошлой неделе</div>
+                        <p className="text-slate-400 text-sm font-medium mb-auto leading-relaxed">
+                            Текущая загруженность ресурсов по всем строительным объектам компании.
+                        </p>
+                        <div className="mt-8 pt-8 border-t border-white/10 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-indigo-500/20 rounded-2xl flex items-center justify-center border border-indigo-500/30">
+                                    <svg className="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                                </div>
+                                <div>
+                                    <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Динамика</div>
+                                    <div className="text-sm font-bold text-indigo-400">+12% рост</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -130,17 +151,17 @@ const Analytics = () => {
                                 const rew = pTasks.filter(t => t.status.includes('REWORK')).length;
 
                                 return (
-                                    <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
-                                        <td className="px-8 py-6">
-                                            <div className="font-bold text-slate-800">{p.name}</div>
-                                            <div className="text-xs text-slate-400 mt-0.5">{p.id} ID</div>
+                                    <tr key={p.id} className="hover:bg-slate-50/50 transition-colors group">
+                                        <td className="px-8 py-7">
+                                            <div className="font-extrabold text-slate-800 group-hover:text-indigo-600 transition-colors tracking-tight">{p.name}</div>
+                                            <div className="text-[10px] font-black text-slate-400 mt-1 uppercase tracking-widest">ЛОКАЦИЙ: {p.subObjectCount || 0}</div>
                                         </td>
-                                        <td className="px-8 py-6 w-1/4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex-1 bg-slate-100 h-2 rounded-full overflow-hidden">
-                                                    <div className="bg-indigo-600 h-full rounded-full" style={{ width: `${prog}%` }}></div>
+                                        <td className="px-8 py-7 w-1/4">
+                                            <div className="flex items-center gap-4">
+                                                <div className="flex-1 bg-slate-100 h-3 rounded-full overflow-hidden">
+                                                    <div className="bg-indigo-600 h-full rounded-full transition-all duration-700" style={{ width: `${prog}%` }}></div>
                                                 </div>
-                                                <span className="text-xs font-bold text-slate-600">{prog}%</span>
+                                                <span className="text-sm font-black text-slate-700">{prog}%</span>
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">

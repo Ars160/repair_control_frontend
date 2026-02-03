@@ -9,6 +9,7 @@ const ManagementDashboard = ({ user }) => {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         const loadDashboardData = async () => {
@@ -64,6 +65,14 @@ const ManagementDashboard = ({ user }) => {
         });
         return analytics.sort((a, b) => b.progress - a.progress);
     }, [tasks, projects]);
+
+    const filteredProjects = useMemo(() => {
+        if (!searchQuery) return projectAnalytics;
+        return projectAnalytics.filter(p =>
+            p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()))
+        );
+    }, [projectAnalytics, searchQuery]);
 
     const draftProjects = useMemo(() => {
         return projects.filter(p => p.status === 'DRAFT');
@@ -123,14 +132,32 @@ const ManagementDashboard = ({ user }) => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Project List */}
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="flex justify-between items-end">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <h2 className="text-xl font-bold text-slate-800">Активные проекты</h2>
+                        <div className="relative w-full sm:w-64">
+                            <input
+                                type="text"
+                                placeholder="Поиск объектов..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                            />
+                            <svg className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-4">
-                        {projectAnalytics.map(project => (
-                            <ProjectCard key={project.id} project={project} />
-                        ))}
+                    <div className="grid grid-cols-1 gap-6">
+                        {filteredProjects.length > 0 ? (
+                            filteredProjects.map(project => (
+                                <ProjectCard key={project.id} project={project} />
+                            ))
+                        ) : (
+                            <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
+                                <p className="text-slate-400">Проекты не найдены</p>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -205,17 +232,18 @@ const StatCard = ({ title, value, subtitle, icon, color, pulse }) => {
     };
 
     return (
-        <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow relative overflow-hidden">
-            {pulse && <div className="absolute top-3 right-3 w-2 h-2 bg-amber-500 rounded-full animate-ping"></div>}
-            <div className="flex items-center gap-3 sm:gap-4">
-                <div className={`p-2.5 sm:p-3 rounded-xl ${colorClasses[color]}`}>
+        <div className="card-premium p-4 sm:p-6 relative overflow-hidden group">
+            <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full opacity-10 transition-transform group-hover:scale-110 ${colorClasses[color].split(' ')[0]}`}></div>
+            {pulse && <div className="absolute top-4 right-4 w-2 h-2 bg-amber-500 rounded-full animate-ping"></div>}
+            <div className="flex items-center gap-4 relative z-10">
+                <div className={`p-3 rounded-2xl ${colorClasses[color]}`}>
                     {icon}
                 </div>
                 <div>
                     <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{title}</h3>
                     <div className="flex items-baseline gap-2">
-                        <span className="text-xl sm:text-2xl font-bold text-slate-800">{value}</span>
-                        <span className="text-[9px] sm:text-[10px] text-slate-400 font-medium">{subtitle}</span>
+                        <span className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">{value}</span>
+                        <span className="text-[10px] text-slate-500 font-medium">{subtitle}</span>
                     </div>
                 </div>
             </div>
@@ -227,64 +255,82 @@ const ProjectCard = ({ project }) => {
     const navigate = useNavigate();
 
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all">
-            <div className="p-4 sm:p-6">
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
-                    <div className="flex items-center gap-3 sm:gap-4">
-                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
-                            <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="card-premium overflow-hidden group">
+            <div className="p-5 sm:p-7">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 mb-6">
+                    <div className="flex items-center gap-5">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100/50 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500">
+                            <svg className="w-7 h-7 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                             </svg>
                         </div>
                         <div>
-                            <h3 className="text-lg sm:text-xl font-bold text-slate-800 line-clamp-1">{project.name}</h3>
-                            <p className="text-xs sm:text-sm text-slate-500 mt-0.5 line-clamp-1">{project.description || 'Проект строительных работ'}</p>
+                            <div className="flex items-center gap-2 mb-1">
+                                <h3 className="text-lg sm:text-2xl font-bold text-slate-800 tracking-tight group-hover:text-indigo-600 transition-colors">{project.name}</h3>
+                                <span className="bg-emerald-50 text-emerald-600 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border border-emerald-100">Активен</span>
+                            </div>
+                            <p className="text-sm text-slate-500 line-clamp-1">{project.description || 'Проект строительных работ в пос. Байберг'}</p>
                         </div>
                     </div>
-                    <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 pt-3 sm:pt-0">
-                        <div className="text-2xl sm:text-3xl font-bold text-indigo-600">{project.progress}%</div>
-                        <div className="text-[10px] text-slate-400 uppercase font-bold">Готово</div>
+                    <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 pt-4 sm:pt-0 border-slate-50">
+                        <div className="text-3xl sm:text-4xl font-extrabold text-indigo-600 tracking-tighter">{project.progress}<span className="text-lg sm:text-xl">%</span></div>
+                        <div className="text-[10px] text-slate-400 uppercase font-black tracking-widest">Общий прогресс</div>
                     </div>
                 </div>
 
-                {/* Stats */}
-                <div className="grid grid-cols-3 gap-4 mb-4">
-                    <div className="text-center p-3 bg-slate-50 rounded-lg">
-                        <div className="text-lg font-bold text-slate-800">{project.total}</div>
-                        <div className="text-[10px] uppercase font-bold text-slate-500">Всего</div>
+                {/* Detailed Stats */}
+                <div className="grid grid-cols-3 gap-6 mb-8">
+                    <div className="flex flex-col gap-1">
+                        <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Задач</div>
+                        <div className="text-xl font-bold text-slate-800">{project.total}</div>
                     </div>
-                    <div className="text-center p-3 bg-emerald-50 rounded-lg">
-                        <div className="text-lg font-bold text-emerald-600">{project.completed}</div>
-                        <div className="text-[10px] uppercase font-bold text-emerald-700">Готово</div>
+                    <div className="flex flex-col gap-1 border-x border-slate-100 px-6">
+                        <div className="text-xs font-bold text-emerald-500 uppercase tracking-widest">Готово</div>
+                        <div className="text-xl font-bold text-emerald-600">{project.completed}</div>
                     </div>
-                    <div className="text-center p-3 bg-rose-50 rounded-lg">
-                        <div className="text-lg font-bold text-rose-600">
+                    <div className="flex flex-col gap-1">
+                        <div className="text-xs font-bold text-rose-400 uppercase tracking-widest">Ошибки</div>
+                        <div className="text-xl font-bold text-rose-600">
                             {project.tasks.filter(t => t.status.includes('REWORK')).length}
                         </div>
-                        <div className="text-[10px] uppercase font-bold text-rose-700">Доработки</div>
                     </div>
                 </div>
 
-                {/* Progress bar */}
-                <div className="mb-4">
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                {/* Advanced Progress bar */}
+                <div className="mb-8 relative">
+                    <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
                         <div
-                            className="bg-indigo-600 h-full rounded-full transition-all duration-1000"
+                            className="bg-gradient-to-r from-indigo-500 to-violet-600 h-full rounded-full transition-all duration-1000 ease-out relative"
                             style={{ width: `${project.progress}%` }}
-                        ></div>
+                        >
+                            <div className="absolute top-0 right-0 bottom-0 w-8 bg-white/20 skew-x-[-20deg] animate-pulse"></div>
+                        </div>
                     </div>
                 </div>
 
-                {/* Action button */}
-                <button
-                    onClick={() => navigate(`/project/${project.id}`)}
-                    className="w-full px-4 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
-                >
-                    Подробнее
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </button>
+                {/* Footer Actions */}
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex -space-x-2">
+                        {[1, 2, 3].map(i => (
+                            <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                                {String.fromCharCode(64 + i)}
+                            </div>
+                        ))}
+                        <div className="w-8 h-8 rounded-full border-2 border-white bg-indigo-50 flex items-center justify-center text-[10px] font-bold text-indigo-600">
+                            +4
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={() => navigate(`/project/${project.id}`)}
+                        className="px-6 py-3 bg-slate-900 text-white rounded-2xl font-bold hover:bg-indigo-600 transition-all duration-300 flex items-center gap-2 shadow-lg shadow-slate-900/10 hover:shadow-indigo-500/20"
+                    >
+                        Управление
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
     );

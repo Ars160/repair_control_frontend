@@ -8,6 +8,7 @@ const api = axios.create({
 });
 
 // Add a request interceptor to include the token
+// Add a request interceptor to include the token
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
@@ -18,6 +19,13 @@ api.interceptors.request.use(
     },
     (error) => Promise.reject(error)
 );
+
+// Helper to resolve photo URL
+const resolvePhotoUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('data:') || path.startsWith('http')) return path;
+    return `${API_URL}/files/${path}`;
+};
 
 export const apiClient = {
     // Login with email and password
@@ -68,10 +76,14 @@ export const apiClient = {
                     : null;
                 return {
                     ...task,
+                    finalPhotoUrl: resolvePhotoUrl(task.finalPhotoUrl),
                     object: `${task.objectName} - ${task.subObjectName}`,
                     priority: task.priority || 'MEDIUM', // Use actual priority from backend
                     status: task.status,
-                    checklist: task.checklist || [],
+                    checklist: (task.checklist || []).map(item => ({
+                        ...item,
+                        photoUrl: resolvePhotoUrl(item.photoUrl)
+                    })),
                     submission
                 };
             });
@@ -127,9 +139,13 @@ export const apiClient = {
                 : null;
             return {
                 ...task,
+                finalPhotoUrl: resolvePhotoUrl(task.finalPhotoUrl),
                 object: `${task.objectName} - ${task.subObjectName}`,
                 priority: 'medium',
-                checklist: task.checklist || [],
+                checklist: (task.checklist || []).map(item => ({
+                    ...item,
+                    photoUrl: resolvePhotoUrl(item.photoUrl)
+                })),
                 submission
             };
         } catch (error) {

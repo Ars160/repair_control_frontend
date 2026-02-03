@@ -39,33 +39,47 @@ const ProjectDetails = () => {
     const progress = tasks.length > 0 ? Math.round((completed / tasks.length) * 100) : 0;
 
     return (
-        <div className="space-y-6 pb-20 animate-fadeIn">
-            {/* Header */}
-            <div className="flex items-center gap-4">
-                <button
-                    onClick={() => navigate('/dashboard')}
-                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                >
-                    <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
-                    </svg>
-                </button>
-                <div className="flex-1">
-                    <h1 className="text-3xl font-bold text-slate-800">{project.name}</h1>
-                    <p className="text-slate-500 mt-1">{project.description || 'Проект строительных работ'}</p>
+        <div className="space-y-10 pb-24 animate-fadeIn">
+            {/* Premium Header */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="flex items-start gap-5">
+                    <button
+                        onClick={() => navigate('/dashboard')}
+                        className="p-3 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition-colors shadow-sm mt-1"
+                    >
+                        <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </button>
+                    <div>
+                        <div className="flex items-center gap-3 mb-1">
+                            <h1 className="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">{project.name}</h1>
+                            <span className="bg-indigo-50 text-indigo-600 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-indigo-100">В РАБОТЕ</span>
+                        </div>
+                        <p className="text-slate-500 font-medium max-w-xl">{project.description || 'Основные строительные и отделочные работы на объекте в пос. Байберг'}</p>
+                    </div>
                 </div>
-                <div className="text-right">
-                    <div className="text-4xl font-bold text-indigo-600">{progress}%</div>
-                    <div className="text-xs text-slate-400 uppercase font-bold">Завершено</div>
+                <div className="flex items-center gap-6 bg-white p-4 rounded-3xl border border-slate-100 shadow-sm self-start md:self-auto">
+                    <div className="relative w-16 h-16">
+                        <svg className="w-full h-full transform -rotate-90">
+                            <circle cx="32" cy="32" r="28" fill="transparent" stroke="currentColor" strokeWidth="6" className="text-slate-100" />
+                            <circle cx="32" cy="32" r="28" fill="transparent" stroke="currentColor" strokeWidth="6" strokeDasharray={`${Math.PI * 2 * 28}`} strokeDashoffset={`${Math.PI * 2 * 28 * (1 - progress / 100)}`} className="text-indigo-600" strokeLinecap="round" />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center text-xs font-black text-slate-800">{progress}%</div>
+                    </div>
+                    <div>
+                        <div className="text-2xl font-black text-indigo-600 leading-none">{progress}%</div>
+                        <div className="text-[10px] text-slate-400 uppercase font-black tracking-widest mt-1">Готовность</div>
+                    </div>
                 </div>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <StatCard label="Всего задач" value={tasks.length} color="bg-slate-100" />
-                <StatCard label="Готово" value={completed} color="bg-emerald-100 text-emerald-700" />
-                <StatCard label="В работе" value={tasks.filter(t => t.status === STATUSES.ACTIVE).length} color="bg-blue-100 text-blue-700" />
-                <StatCard label="Доработки" value={tasks.filter(t => t.status.includes('REWORK')).length} color="bg-rose-100 text-rose-700" />
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+                <StatCard label="Всего задач" value={tasks.length} icon={<TaskIcon />} color="bg-slate-50 text-slate-700 border-slate-100" />
+                <StatCard label="Выполнено" value={completed} icon={<CheckIcon />} color="bg-emerald-50 text-emerald-700 border-emerald-100" />
+                <StatCard label="В процессе" value={tasks.filter(t => t.status === STATUSES.ACTIVE).length} icon={<PlayIcon />} color="bg-blue-50 text-blue-700 border-blue-100" />
+                <StatCard label="Доработки" value={tasks.filter(t => t.status.includes('REWORK')).length} icon={<AlertIcon />} color="bg-rose-50 text-rose-700 border-rose-100" />
             </div>
 
             {/* Objects */}
@@ -79,10 +93,13 @@ const ProjectDetails = () => {
     );
 };
 
-const StatCard = ({ label, value, color = 'bg-slate-100' }) => (
-    <div className={`p-4 rounded-2xl ${color}`}>
-        <div className="text-2xl font-bold">{value}</div>
-        <div className="text-xs uppercase font-bold tracking-wider opacity-60">{label}</div>
+const StatCard = ({ label, value, icon, color }) => (
+    <div className={`p-4 sm:p-5 rounded-3xl border ${color} shadow-sm flex flex-col gap-3 group hover:scale-[1.02] transition-transform`}>
+        <div className="flex justify-between items-start">
+            <span className="text-2xl sm:text-3xl font-black">{value}</span>
+            <div className="opacity-40 group-hover:scale-110 transition-transform">{icon}</div>
+        </div>
+        <div className="text-[10px] uppercase font-black tracking-widest opacity-60 leading-none">{label}</div>
     </div>
 );
 
@@ -102,39 +119,58 @@ const ObjectCard = ({ object }) => {
     };
 
     return (
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="card-premium overflow-hidden border-none ring-1 ring-slate-100">
             <div
-                className="p-5 flex justify-between items-center cursor-pointer hover:bg-slate-50"
+                className="p-5 sm:p-6 flex justify-between items-center cursor-pointer hover:bg-slate-50/50 transition-colors"
                 onClick={loadSubObjects}
             >
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-center gap-5">
+                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100 ${expanded ? 'bg-indigo-600 text-white' : ''} transition-colors duration-300`}>
+                        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                         </svg>
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-slate-800">{object.name}</h3>
-                        {object.address && <p className="text-sm text-slate-500">{object.address}</p>}
+                        <h3 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight">{object.name}</h3>
+                        <div className="flex items-center gap-3 mt-1">
+                            {object.address && <p className="text-xs text-slate-500 flex items-center gap-1 font-medium">
+                                <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                {object.address}
+                            </p>}
+                            <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                            <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">{object.subObjectCount || 0} ЛОКАЦИЙ</span>
+                        </div>
                     </div>
                 </div>
-                <svg className={`w-5 h-5 text-slate-400 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
+                <div className="flex items-center gap-4">
+                    <div className="hidden sm:flex flex-col items-end">
+                        <div className="text-xs font-black text-slate-400 uppercase tracking-widest leading-none">Прогресс</div>
+                        <div className="text-lg font-black text-slate-700 tracking-tight mt-1">45%</div>
+                    </div>
+                    <div className={`p-2 rounded-xl bg-slate-100 text-slate-400 transition-transform duration-300 ${expanded ? 'rotate-180 bg-slate-900 text-white' : ''}`}>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </div>
             </div>
 
             {expanded && (
-                <div className="border-t border-slate-100 bg-slate-50 p-5">
+                <div className="bg-slate-50/50 p-6 border-t border-slate-100">
                     {loading ? (
-                        <div className="text-center py-4 text-slate-400">Загрузка...</div>
+                        <div className="flex items-center justify-center py-10">
+                            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                        </div>
                     ) : subObjects.length > 0 ? (
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             {subObjects.map(sub => (
                                 <SubObjectCard key={sub.id} subObject={sub} />
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-4 text-slate-400">Нет локаций</div>
+                        <div className="text-center py-10 bg-white rounded-2xl border-2 border-dashed border-slate-200">
+                            <p className="text-sm font-bold text-slate-400">В этом объекте пока нет локаций</p>
+                        </div>
                     )}
                 </div>
             )}
@@ -311,5 +347,11 @@ const translateStatus = (status) => {
     };
     return translations[status] || status;
 };
+
+// --- New Icons ---
+const TaskIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>;
+const CheckIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>;
+const PlayIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>;
+const AlertIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>;
 
 export default ProjectDetails;

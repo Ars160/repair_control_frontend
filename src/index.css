@@ -1,2 +1,46 @@
 @import "tailwindcss";
 
+@layer utilities {
+  .glass {
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .glass-dark {
+    background-color: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(51, 65, 85, 0.3);
+  }
+
+  .card-premium {
+    background-color: white;
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(241, 245, 249, 0.5);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-premium:hover {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+    transform: translateY(-0.25rem);
+  }
+
+  .text-gradient {
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    background-image: linear-gradient(to right, #4f46e5, #7c3aed);
+  }
+}
+
+body {
+  @apply min-h-screen text-slate-900;
+  background-color: #f8fafc;
+  background-image:
+    radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 400px),
+    radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.05), transparent 400px);
+  background-attachment: fixed;
+}
