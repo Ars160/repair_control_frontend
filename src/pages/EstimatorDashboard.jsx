@@ -337,7 +337,7 @@ const EstimatorDashboard = () => {
                 }));
                 setShowTaskForm(null);
                 setEditingTaskId(null);
-                setNewTask({ title: '', taskType: 'SEQUENTIAL', deadline: '', assigneeIds: [], checklist: [] });
+                setNewTask({ title: '', taskType: 'SEQUENTIAL', deadline: '', assigneeIds: [], priority: 'MEDIUM', placement: 'END', placementTargetId: '', checklist: [] });
             } else alert(res.message);
         } else {
             const res = await api.createTask(payload);
@@ -372,7 +372,7 @@ const EstimatorDashboard = () => {
         }
     };
 
-    const startEditTask = async (e, task, subObjectId) => {
+    const startEditTask = async (e, task, subObjectId, projectId) => {
         e.stopPropagation();
         try {
             const workers = await api.getSubObjectWorkers(subObjectId);
@@ -738,6 +738,11 @@ const EstimatorDashboard = () => {
                                                                                     <option key={u.id} value={u.id}>{u.fullName}</option>
                                                                                 ))}
                                                                             </select>
+                                                                            {newTask.taskType === 'PARALLEL' && (
+                                                                                <div className="text-[10px] text-amber-700 bg-amber-50 p-2 rounded mt-1 border border-amber-200">
+                                                                                    ⚠️ <strong>Параллельные задачи:</strong> назначайте разных работников
+                                                                                </div>
+                                                                            )}
                                                                             <div className="grid grid-cols-2 gap-2 mt-2">
                                                                                 <div className="space-y-1">
                                                                                     <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest pl-1">Приоритет</label>
@@ -752,21 +757,20 @@ const EstimatorDashboard = () => {
                                                                                     </select>
                                                                                 </div>
 
-                                                                                {!editingTaskId && (
-                                                                                    <div className="space-y-1">
-                                                                                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest pl-1">Расположение</label>
-                                                                                        <select
-                                                                                            className="w-full border-indigo-200 rounded-lg text-xs p-2 bg-white"
-                                                                                            value={newTask.placement}
-                                                                                            onChange={e => setNewTask({ ...newTask, placement: e.target.value })}
-                                                                                        >
-                                                                                            <option value="END">В конец</option>
-                                                                                            <option value="START">В начало</option>
-                                                                                            <option value="AFTER">После...</option>
-                                                                                        </select>
-                                                                                    </div>
-                                                                                )}
+                                                                                <div className="space-y-1">
+                                                                                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest pl-1">Расположение</label>
+                                                                                    <select
+                                                                                        className="w-full border-indigo-200 rounded-lg text-xs p-2 bg-white"
+                                                                                        value={newTask.placement}
+                                                                                        onChange={e => setNewTask({ ...newTask, placement: e.target.value })}
+                                                                                    >
+                                                                                        <option value="END">В конец</option>
+                                                                                        <option value="START">В начало</option>
+                                                                                        <option value="AFTER">После...</option>
+                                                                                    </select>
+                                                                                </div>
                                                                             </div>
+
 
                                                                             {!editingTaskId && (
                                                                                 <>
@@ -850,7 +854,7 @@ const EstimatorDashboard = () => {
                                                                                     </div>
                                                                                 </>
                                                                             )}
-                                                                            {newTask.placement === 'AFTER' && !editingTaskId && (
+                                                                            {newTask.placement === 'AFTER' && (
                                                                                 <select
                                                                                     className="w-full border-indigo-200 rounded text-xs p-1.5 mt-2"
                                                                                     value={newTask.placementTargetId}
@@ -898,7 +902,7 @@ const EstimatorDashboard = () => {
                                                                                     }`}>
                                                                                     {task.status.substring(0, 1)}
                                                                                 </span>
-                                                                                <button onClick={(e) => startEditTask(e, task, subObject.id)} className="text-slate-300 hover:text-indigo-600 ml-1 hidden group-hover:block" title="Ред.">
+                                                                                <button onClick={(e) => startEditTask(e, task, subObject.id, project.id)} className="text-slate-300 hover:text-indigo-600 ml-1 hidden group-hover:block" title="Ред.">
                                                                                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                                                                 </button>
                                                                                 <button onClick={(e) => handleDeleteTask(e, task.id, subObject.id)} className="text-slate-300 hover:text-red-600 hidden group-hover:block" title="Уд.">

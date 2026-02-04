@@ -45,7 +45,7 @@ const TaskDetail = () => {
             if (fetchedTask) {
                 setTask(fetchedTask);
                 // If task is in rework, pre-fill comment
-                if (fetchedTask.status === STATUSES.REWORK_FOREMAN) {
+                if (fetchedTask.status === STATUSES.REWORK_FOREMAN || fetchedTask.status === STATUSES.REWORK_PM) {
                     setComment(fetchedTask.submission?.comment || '');
                 }
             } else {
@@ -105,7 +105,8 @@ const TaskDetail = () => {
 
     const isEditable = user?.role === ROLES.WORKER && (
         task?.status === STATUSES.ACTIVE ||
-        task?.status === STATUSES.REWORK_FOREMAN
+        task?.status === STATUSES.REWORK_FOREMAN ||
+        task?.status === STATUSES.REWORK_PM
     );
 
     if (loading) return <div className="text-center py-20">Загрузка задачи...</div>;

@@ -97,16 +97,14 @@ export const apiClient = {
             switch (userRole) {
                 case 'WORKER':
                     return visibleTasks.filter(t =>
-                        // Show tasks in assigned sub-objects OR tasks specifically assigned to worker
-                        ((t.subObjectWorkerIds && t.subObjectWorkerIds.includes(userId)) ||
-                            (t.assigneeIds && t.assigneeIds.includes(userId))) &&
-                        ['ACTIVE', 'REWORK_FOREMAN', 'LOCKED'].includes(t.status)
+                        // Only show tasks specifically assigned to worker
+                        (t.assigneeIds && t.assigneeIds.includes(userId)) &&
+                        ['ACTIVE', 'REWORK_FOREMAN', 'LOCKED', 'UNDER_REVIEW_FOREMAN', 'UNDER_REVIEW_PM', 'REWORK_PM', 'COMPLETED'].includes(t.status)
                     );
                 case 'FOREMAN':
                     return visibleTasks.filter(t =>
-                        // Show tasks in projects where user is assigned as foreman
-                        (t.projectForemanIds && t.projectForemanIds.includes(userId)) &&
-                        ['UNDER_REVIEW_FOREMAN', 'REWORK_PM'].includes(t.status)
+                        // Show all tasks in projects where user is assigned as foreman
+                        (t.projectForemanIds && t.projectForemanIds.includes(userId))
                     );
                 case 'PM':
                     return visibleTasks.filter(t =>
@@ -252,9 +250,12 @@ export const apiClient = {
         }
     },
 
-    getTasksBySubObject: async (subObjectId) => {
+    getTasksBySubObject: async (subObjectId, userId = null) => {
         try {
-            const response = await api.get(`/api/tasks/sub-object/${subObjectId}`);
+            const url = userId
+                ? `/api/tasks/sub-object/${subObjectId}?userId=${userId}`
+                : `/api/tasks/sub-object/${subObjectId}`;
+            const response = await api.get(url);
             return response.data;
         } catch (error) {
             console.error("Get tasks by sub-object error", error);

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import api from '../api/client';
 import { STATUSES } from '../utils/mockData';
 
@@ -179,17 +180,20 @@ const ObjectCard = ({ object }) => {
 };
 
 const SubObjectCard = ({ subObject }) => {
+    const { user } = useAuth();
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const loadTasks = async () => {
-            const data = await api.getTasksBySubObject(subObject.id);
+            // Filter tasks for workers, show all for foreman/estimators/managers
+            const userId = user.role === 'WORKER' ? user.id : null;
+            const data = await api.getTasksBySubObject(subObject.id, userId);
             setTasks(data.sort((a, b) => (a.index || 0) - (b.index || 0)));
             setLoading(false);
         };
         loadTasks();
-    }, [subObject.id]);
+    }, [subObject.id, user]);
 
     if (loading) return <div className="text-sm text-slate-400">Загрузка задач...</div>;
 

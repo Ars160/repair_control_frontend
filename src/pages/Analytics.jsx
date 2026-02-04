@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Fragment } from 'react';
 import api from '../api/client';
 import { STATUSES } from '../utils/mockData';
 
@@ -6,6 +6,7 @@ const Analytics = () => {
     const [tasks, setTasks] = useState([]);
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [expandedProjectId, setExpandedProjectId] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -137,6 +138,7 @@ const Analytics = () => {
                             <tr>
                                 <th className="px-8 py-4">Проект</th>
                                 <th className="px-8 py-4">Прогресс</th>
+                                <th className="px-8 py-4">Чек-листы</th>
                                 <th className="px-8 py-4">Задачи (Г / В / Д)</th>
                                 <th className="px-8 py-4">Статус</th>
                             </tr>
@@ -151,42 +153,109 @@ const Analytics = () => {
                                 const rew = pTasks.filter(t => t.status.includes('REWORK')).length;
 
                                 return (
-                                    <tr key={p.id} className="hover:bg-slate-50/50 transition-colors group">
-                                        <td className="px-8 py-7">
-                                            <div className="font-extrabold text-slate-800 group-hover:text-indigo-600 transition-colors tracking-tight">{p.name}</div>
-                                            <div className="text-[10px] font-black text-slate-400 mt-1 uppercase tracking-widest">ЛОКАЦИЙ: {p.subObjectCount || 0}</div>
-                                        </td>
-                                        <td className="px-8 py-7 w-1/4">
-                                            <div className="flex items-center gap-4">
-                                                <div className="flex-1 bg-slate-100 h-3 rounded-full overflow-hidden">
-                                                    <div className="bg-indigo-600 h-full rounded-full transition-all duration-700" style={{ width: `${prog}%` }}></div>
+                                    <Fragment key={p.id}>
+                                        <tr onClick={() => setExpandedProjectId(expandedProjectId === p.id ? null : p.id)} className="hover:bg-slate-50/50 transition-colors group cursor-pointer border-b border-slate-50 last:border-0">
+                                            <td className="px-8 py-7">
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`transition-transform duration-300 ${expandedProjectId === p.id ? 'rotate-90' : ''}`}>
+                                                        <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-extrabold text-slate-800 group-hover:text-indigo-600 transition-colors tracking-tight">{p.name}</div>
+                                                        <div className="text-[10px] font-black text-slate-400 mt-1 uppercase tracking-widest">ЛОКАЦИЙ: {p.subObjectCount || 0}</div>
+                                                    </div>
                                                 </div>
-                                                <span className="text-sm font-black text-slate-700">{prog}%</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-6">
-                                            <div className="flex items-center gap-2">
-                                                <span className="px-2 py-1 bg-emerald-50 text-emerald-600 rounded text-xs font-bold">{comp}</span>
-                                                <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs font-bold">{inP}</span>
-                                                <span className="px-2 py-1 bg-rose-50 text-rose-600 rounded text-xs font-bold">{rew}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-6">
-                                            {prog > 90 ? (
-                                                <span className="flex items-center gap-1.5 text-emerald-600 text-xs font-bold">
-                                                    <span className="w-1.5 h-1.5 bg-emerald-600 rounded-full"></span> Почти готов
-                                                </span>
-                                            ) : rew > 2 ? (
-                                                <span className="flex items-center gap-1.5 text-rose-500 text-xs font-bold">
-                                                    <span className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse"></span> Внимание
-                                                </span>
-                                            ) : (
-                                                <span className="flex items-center gap-1.5 text-blue-500 text-xs font-bold">
-                                                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> В графике
-                                                </span>
-                                            )}
-                                        </td>
-                                    </tr>
+                                            </td>
+                                            <td className="px-8 py-7 w-1/4">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="flex-1 bg-slate-100 h-3 rounded-full overflow-hidden">
+                                                        <div className="bg-indigo-600 h-full rounded-full transition-all duration-700" style={{ width: `${prog}%` }}></div>
+                                                    </div>
+                                                    <span className="text-sm font-black text-slate-700">{prog}%</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-7 w-1/4">
+                                                <div className="flex flex-col gap-1">
+                                                    <div className="flex justify-between text-xs font-bold text-slate-500">
+                                                        <span>{pTasks.reduce((acc, t) => acc + (t.checklist?.filter(i => i.isCompleted).length || 0), 0)} / {pTasks.reduce((acc, t) => acc + (t.checklist?.length || 0), 0)}</span>
+                                                        <span>{Math.round((pTasks.reduce((acc, t) => acc + (t.checklist?.filter(i => i.isCompleted).length || 0), 0) / (pTasks.reduce((acc, t) => acc + (t.checklist?.length || 0), 0) || 1)) * 100)}%</span>
+                                                    </div>
+                                                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                                        <div
+                                                            className="bg-amber-500 h-full rounded-full transition-all duration-700"
+                                                            style={{ width: `${Math.round((pTasks.reduce((acc, t) => acc + (t.checklist?.filter(i => i.isCompleted).length || 0), 0) / (pTasks.reduce((acc, t) => acc + (t.checklist?.length || 0), 0) || 1)) * 100)}%` }}
+                                                        ></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-6">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="px-2 py-1 bg-emerald-50 text-emerald-600 rounded text-xs font-bold">{comp}</span>
+                                                    <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs font-bold">{inP}</span>
+                                                    <span className="px-2 py-1 bg-rose-50 text-rose-600 rounded text-xs font-bold">{rew}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-6">
+                                                {prog > 90 ? (
+                                                    <span className="flex items-center gap-1.5 text-emerald-600 text-xs font-bold">
+                                                        <span className="w-1.5 h-1.5 bg-emerald-600 rounded-full"></span> Почти готов
+                                                    </span>
+                                                ) : rew > 2 ? (
+                                                    <span className="flex items-center gap-1.5 text-rose-500 text-xs font-bold">
+                                                        <span className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse"></span> Внимание
+                                                    </span>
+                                                ) : (
+                                                    <span className="flex items-center gap-1.5 text-blue-500 text-xs font-bold">
+                                                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> В графике
+                                                    </span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                        {expandedProjectId === p.id && (
+                                            <tr className="bg-slate-50/50 animate-fadeIn">
+                                                <td colSpan="5" className="px-8 py-6">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                        {(() => {
+                                                            const workerStats = {};
+                                                            pTasks.forEach(t => {
+                                                                const names = t.assigneeNames || [];
+                                                                names.forEach(name => {
+                                                                    if (!workerStats[name]) {
+                                                                        workerStats[name] = { total: 0, active: 0, rework: 0, completed: 0 };
+                                                                    }
+                                                                    workerStats[name].total++;
+                                                                    if (t.status === STATUSES.COMPLETED) workerStats[name].completed++;
+                                                                    else if (t.status.includes('REWORK')) workerStats[name].rework++;
+                                                                    else workerStats[name].active++;
+                                                                });
+                                                            });
+
+                                                            if (Object.keys(workerStats).length === 0) {
+                                                                return <div className="col-span-3 text-center py-4 text-slate-400 text-sm font-medium italic">Нет назначенных исполнителей</div>;
+                                                            }
+
+                                                            return Object.entries(workerStats).map(([name, stats]) => (
+                                                                <div key={name} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-start justify-between">
+                                                                    <div>
+                                                                        <div className="font-bold text-slate-800 text-sm">{name}</div>
+                                                                        <div className="mt-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                                                                            <span className="text-blue-600">{stats.active} в работе</span>
+                                                                            <span>•</span>
+                                                                            <span className={`${stats.rework > 0 ? 'text-rose-600' : 'text-slate-400'}`}>{stats.rework} доработок</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="text-right">
+                                                                        <div className="text-lg font-black text-indigo-600">{stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%</div>
+                                                                        <div className="text-[9px] text-slate-400 font-bold uppercase">Эфф.</div>
+                                                                    </div>
+                                                                </div>
+                                                            ));
+                                                        })()}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </Fragment>
                                 );
                             })}
                         </tbody>

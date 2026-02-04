@@ -41,14 +41,14 @@ const getPriorityStyles = (priority) => {
 // Helper to translate status to Russian
 const translateStatus = (status) => {
     const translations = {
-        [STATUSES.LOCKED]: 'Заблокировано',
-        [STATUSES.ACTIVE]: 'Активно',
-        [STATUSES.UNDER_REVIEW_FOREMAN]: 'На проверке у прораба',
-        [STATUSES.UNDER_REVIEW_PM]: 'На проверке у ПМ',
+        [STATUSES.LOCKED]: 'В очереди',
+        [STATUSES.ACTIVE]: 'В работе',
+        [STATUSES.UNDER_REVIEW_FOREMAN]: 'Этап 1: У прораба',
+        [STATUSES.UNDER_REVIEW_PM]: 'Этап 2: У ПМ',
         [STATUSES.REWORK]: 'Доработка',
-        [STATUSES.REWORK_FOREMAN]: 'Доработка (от Прораба)',
-        [STATUSES.REWORK_PM]: 'Вернуто ПМ',
-        [STATUSES.COMPLETED]: 'Завершено',
+        [STATUSES.REWORK_FOREMAN]: 'Доработка (Прораб)',
+        [STATUSES.REWORK_PM]: 'Доработка (ПМ)',
+        [STATUSES.COMPLETED]: 'Готово',
     };
     return translations[status] || status;
 };
@@ -59,15 +59,15 @@ const TaskCard = ({ task, userRole }) => {
     // Determine the correct link based on user role and task status
     const getTaskLink = () => {
         // Allow workers to view locked tasks
-        if ((userRole === ROLES.FOREMAN && (task.status === STATUSES.UNDER_REVIEW_FOREMAN || task.status === STATUSES.REWORK_PM)) ||
+        if ((userRole === ROLES.FOREMAN && task.status === STATUSES.UNDER_REVIEW_FOREMAN) ||
             (userRole === ROLES.PM && task.status === STATUSES.UNDER_REVIEW_PM)) {
             return `/review/${task.id}`;
         }
         return `/tasks/${task.id}`;
     };
 
-    const completionPercentage = task.checklist.length > 0
-        ? Math.round((task.checklist.filter(i => i.completed).length / task.checklist.length) * 100)
+    const completionPercentage = task.checklist && task.checklist.length > 0
+        ? Math.round((task.checklist.filter(i => i.isCompleted).length / task.checklist.length) * 100)
         : 0;
 
     const isLocked = task.status === STATUSES.LOCKED;
@@ -95,6 +95,12 @@ const TaskCard = ({ task, userRole }) => {
             </div>
 
             <div className="flex flex-wrap items-center gap-y-2 gap-x-4 mb-4 sm:mb-6">
+                {task.assigneeNames && task.assigneeNames.length > 0 && (
+                    <div className="flex items-center text-slate-500 text-xs sm:text-sm">
+                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        <span className="font-medium text-slate-700">{task.assigneeNames.join(', ')}</span>
+                    </div>
+                )}
                 <div className="flex items-center text-slate-500 text-xs sm:text-sm">
                     <svg className={`w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 ${getPriorityStyles(task.priority)}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     <span className="capitalize">{task.priority === 'HIGH' ? 'Высокий' : task.priority === 'MEDIUM' ? 'Средний' : 'Низкий'}</span>
