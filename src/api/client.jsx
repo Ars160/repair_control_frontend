@@ -462,6 +462,17 @@ export const apiClient = {
         }
     },
 
+    // --- Telegram API ---
+    getTelegramConfig: async () => {
+        try {
+            const response = await api.get('/api/telegram/config');
+            return response.data;
+        } catch (error) {
+            console.error("Get telegram config error", error);
+            return null;
+        }
+    },
+
     // --- Notification APIs ---
     getUnreadNotifications: async () => {
         try {
