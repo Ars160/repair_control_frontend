@@ -603,6 +603,37 @@ export const apiClient = {
             console.error("Get sub-object workers error", error);
             return [];
         }
+    },
+
+    // --- Template APIs ---
+    getTemplates: async () => {
+        try {
+            const response = await api.get('/api/templates');
+            return response.data;
+        } catch (error) {
+            console.error("Get templates error", error);
+            return [];
+        }
+    },
+
+    createTemplate: async (templateData) => {
+        try {
+            const response = await api.post('/api/templates', templateData);
+            return { success: true, data: response.data };
+        } catch (error) {
+            console.error("Create template error", error);
+            return { success: false, message: error.response?.data?.message || 'Failed to create template' };
+        }
+    },
+
+    deleteTemplate: async (id) => {
+        try {
+            await api.delete(`/api/templates/${id}`);
+            return { success: true };
+        } catch (error) {
+            console.error("Delete template error", error);
+            return { success: false, message: error.response?.data?.message || 'Failed to delete template' };
+        }
     }
 };
 

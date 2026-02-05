@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/client';
 import ChecklistManager from '../components/ChecklistManager';
+import ChecklistTemplateManager from '../components/ChecklistTemplateManager';
 
 const EstimatorDashboard = () => {
     const [projects, setProjects] = useState([]);
@@ -409,34 +410,107 @@ const EstimatorDashboard = () => {
         }
     };
 
+    // --- Template Manager ---
+    const [showTemplateManager, setShowTemplateManager] = useState(false);
+    const [templates, setTemplates] = useState([]);
+
+    const loadTemplates = async () => {
+        const data = await api.getTemplates();
+        setTemplates(data);
+    };
+
+    useEffect(() => {
+        if (showTaskForm) {
+            loadTemplates();
+        }
+    }, [showTaskForm]);
+
+    const handleTemplateSelect = (e) => {
+        const value = e.target.value;
+
+        if (value === 'custom') {
+            if (newTask.checklist.length > 0) {
+                if (!window.confirm("Очистить текущий чеклист?")) {
+                    e.target.value = ""; // Reset select if cancelled
+                    return;
+                }
+            }
+            setNewTask(prev => ({
+                ...prev,
+                checklist: []
+            }));
+            return;
+        }
+
+        const templateId = Number(value);
+        if (!templateId) return;
+
+        const template = templates.find(t => t.id === templateId);
+        if (template) {
+            if (newTask.checklist.length > 0) {
+                if (!window.confirm("Заменить текущий чеклист пунктами из шаблона?")) {
+                    e.target.value = ""; // Reset select
+                    return;
+                }
+            }
+            setNewTask(prev => ({
+                ...prev,
+                checklist: template.items.map(item => ({
+                    description: item.description,
+                    isPhotoRequired: item.isPhotoRequired,
+                    isCompleted: false
+                }))
+            }));
+        }
+    };
+
+
     // --- Render Helpers ---
 
     if (loading) return <div className="p-8">Загрузка проектов...</div>;
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20">
+            {/* Template Manager Modal */}
+            {showTemplateManager && (
+                <ChecklistTemplateManager
+                    onClose={() => setShowTemplateManager(false)}
+                />
+            )}
+
             {/* Dashboard Header */}
             <div className="flex justify-between items-center bg-white/60 p-4 sm:p-6 rounded-2xl glass-panel sticky top-4 z-20 backdrop-blur-xl">
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Рабочее пространство</h1>
                     <p className="text-slate-500 text-xs sm:text-sm mt-1">Управление проектами и задачами</p>
                 </div>
-                <button
-                    onClick={() => {
-                        if (showProjectForm && editingProjectId) {
-                            setShowProjectForm(false);
-                            setEditingProjectId(null);
-                            setNewProject({ name: '', description: '', deadline: '' });
-                        } else {
-                            setShowProjectForm(!showProjectForm);
-                        }
-                    }}
-                    className="flex items-center px-3 py-2 sm:px-4 sm:py-2.5 bg-indigo-600 text-white rounded-xl font-medium shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all hover:-translate-y-0.5"
-                >
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-                    <span className="hidden sm:inline">{showProjectForm ? 'Отмена' : 'Новый проект'}</span>
-                    <span className="sm:hidden">{showProjectForm ? '✖' : '+ Проект'}</span>
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setShowTemplateManager(true)}
+                        className="flex items-center px-3 py-2 sm:px-4 sm:py-2.5 bg-white text-indigo-600 border border-indigo-200 rounded-xl font-medium shadow-sm hover:bg-indigo-50 transition-all"
+                    >
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                        <span className="hidden sm:inline">Шаблоны</span>
+                    </button>
+                    <button
+                        onClick={() => {
+                            if (showProjectForm && editingProjectId) {
+                                setShowProjectForm(false);
+                                setEditingProjectId(null);
+                                setNewProject({ name: '', description: '', deadline: '' });
+                            } else {
+                                setShowProjectForm(!showProjectForm);
+                            }
+                        }}
+                        className="flex items-center px-3 py-2 sm:px-4 sm:py-2.5 bg-indigo-600 text-white rounded-xl font-medium shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all hover:-translate-y-0.5"
+                    >
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+                        <span className="hidden sm:inline">{showProjectForm ? 'Отмена' : 'Новый проект'}</span>
+                        <span className="sm:hidden">{showProjectForm ? '✖' : '+ Проект'}</span>
+                    </button>
+                </div>
             </div>
 
             {/* Create/Edit Project Form */}
@@ -774,8 +848,22 @@ const EstimatorDashboard = () => {
 
                                                                             {!editingTaskId && (
                                                                                 <>
-                                                                                    <div className="space-y-2 pt-2 border-t border-indigo-100">
-                                                                                        <label className="text-[10px] font-bold text-slate-500 uppercase">Чек-лист (пункты)</label>
+                                                                                    {/* Template Selector */}
+                                                                                    <div className="pt-2 border-t border-indigo-100 mb-2">
+                                                                                        <div className="flex justify-between items-center mb-1">
+                                                                                            <label className="text-[10px] font-bold text-slate-500 uppercase">Чек-лист</label>
+                                                                                            <select
+                                                                                                className="text-xs border-none bg-indigo-50 text-indigo-600 font-bold focus:ring-0 cursor-pointer hover:bg-indigo-100 rounded px-2 py-0.5 transition-colors"
+                                                                                                onChange={handleTemplateSelect}
+                                                                                                defaultValue=""
+                                                                                            >
+                                                                                                <option value="" disabled>Загрузить шаблон...</option>
+                                                                                                <option value="custom" className="font-bold text-orange-600">-- Пустой (сбросить) --</option>
+                                                                                                {templates.map(t => (
+                                                                                                    <option key={t.id} value={t.id}>{t.name}</option>
+                                                                                                ))}
+                                                                                            </select>
+                                                                                        </div>
                                                                                         <div className="space-y-1">
                                                                                             {newTask.checklist.map((item, idx) => (
                                                                                                 <div key={idx} className="flex gap-1 items-center bg-white p-1 rounded border border-slate-100 group relative">
