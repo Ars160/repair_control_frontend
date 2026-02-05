@@ -437,6 +437,7 @@ const EstimatorDashboard = () => {
             }
             setNewTask(prev => ({
                 ...prev,
+                templateId: null,
                 checklist: []
             }));
             return;
@@ -455,6 +456,7 @@ const EstimatorDashboard = () => {
             }
             setNewTask(prev => ({
                 ...prev,
+                templateId: template.id,
                 checklist: template.items.map(item => ({
                     description: item.description,
                     isPhotoRequired: item.isPhotoRequired,

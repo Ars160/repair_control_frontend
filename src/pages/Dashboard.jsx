@@ -12,6 +12,15 @@ const Dashboard = () => {
     const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const [groupByTemplate, setGroupByTemplate] = useState(false);
+    const [collapsedGroups, setCollapsedGroups] = useState({});
+
+    const toggleGroup = (groupName) => {
+        setCollapsedGroups(prev => ({
+            ...prev,
+            [groupName]: !prev[groupName]
+        }));
+    };
 
     useEffect(() => {
         const fetchTasks = async () => {
@@ -175,12 +184,64 @@ const Dashboard = () => {
                 })}
             </div>
 
-            {filteredTasks.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredTasks.map(task => (
-                        <TaskCard key={task.id} task={task} userRole={user.role} />
-                    ))}
+            {/* View Toggle */}
+            <div className="flex justify-end mb-4">
+                <div className="bg-slate-100 p-1 rounded-lg flex gap-1">
+                    <button
+                        onClick={() => setGroupByTemplate(false)}
+                        className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${!groupByTemplate ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                        Список
+                    </button>
+                    <button
+                        onClick={() => setGroupByTemplate(true)}
+                        className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${groupByTemplate ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                        По разделам
+                    </button>
                 </div>
+            </div>
+
+            {filteredTasks.length > 0 ? (
+                groupByTemplate ? (
+                    Object.entries(
+                        filteredTasks.reduce((groups, task) => {
+                            const groupName = task.templateName || 'Без шаблона (Общие)';
+                            if (!groups[groupName]) groups[groupName] = [];
+                            groups[groupName].push(task);
+                            return groups;
+                        }, {})
+                    ).map(([groupName, tasks]) => (
+                        <div key={groupName} className="mb-4 bg-white rounded-xl border border-slate-100 overflow-hidden shadow-sm">
+                            <div
+                                className="flex items-center gap-3 p-4 cursor-pointer hover:bg-slate-50 transition-colors select-none"
+                                onClick={() => toggleGroup(groupName)}
+                            >
+                                <span className={`transform transition-transform duration-200 text-slate-400 ${collapsedGroups[groupName] ? '-rotate-90' : ''}`}>
+                                    ▼
+                                </span>
+                                <h3 className="text-lg font-bold text-slate-700 flex items-center gap-3 flex-1">
+                                    {groupName}
+                                    <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-medium">{tasks.length}</span>
+                                </h3>
+                            </div>
+
+                            {!collapsedGroups[groupName] && (
+                                <div className="p-4 pt-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn border-t border-slate-50">
+                                    {tasks.map(task => (
+                                        <TaskCard key={task.id} task={task} userRole={user.role} />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    ))
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredTasks.map(task => (
+                            <TaskCard key={task.id} task={task} userRole={user.role} />
+                        ))}
+                    </div>
+                )
             ) : (
                 <div className="text-center mt-12 bg-white p-6 sm:p-12 rounded-2xl shadow-sm border border-slate-100">
                     <div className="mx-auto h-12 w-12 text-gray-400 mb-4">
