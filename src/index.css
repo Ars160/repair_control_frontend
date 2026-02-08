@@ -1,46 +1,44 @@
 @import "tailwindcss";
 
-@layer utilities {
-  .glass {
-    background-color: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-  }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-  .glass-dark {
-    background-color: rgba(15, 23, 42, 0.4);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(51, 65, 85, 0.3);
-  }
+@layer utilities {
+  /* Removed Glassmorphism to ensure clean design */
 
   .card-premium {
-    background-color: white;
-    border-radius: 1.5rem;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
-    border: 1px solid rgba(241, 245, 249, 0.5);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    @apply bg-white rounded-xl transition-all duration-200;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+    border: 1px solid #E2E8F0;
+    /* Slate-200 */
   }
 
   .card-premium:hover {
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-    transform: translateY(-0.25rem);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    border-color: #4EA0EB;
+    /* Bauberg Sky */
   }
 
   .text-gradient {
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-    background-image: linear-gradient(to right, #4f46e5, #7c3aed);
+    color: #0036CF;
+    /* Bauberg Blue (Solid) */
+  }
+
+  .btn-primary {
+    @apply relative overflow-hidden rounded-lg px-4 py-2 text-white shadow-sm transition-all duration-200;
+    background-color: #0036CF;
+    /* Bauberg Blue */
+  }
+
+  .btn-primary:hover {
+    background-color: #0028a3;
+    /* Darker Blue */
+    shadow: 0 4px 6px -1px rgba(0, 54, 207, 0.3);
   }
 }
 
 body {
-  @apply min-h-screen text-slate-900;
-  background-color: #f8fafc;
-  background-image:
-    radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 400px),
-    radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.05), transparent 400px);
-  background-attachment: fixed;
+  @apply min-h-screen font-sans text-slate-800 antialiased;
+  background-color: #F8FAFC;
+  /* Clean Slate-50 background */
 }

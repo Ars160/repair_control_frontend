@@ -24,55 +24,56 @@ function ProtectedRoute() {
 }
 
 // A simple layout component with a header.
+import { useState, useEffect } from 'react';
+import Sidebar from './components/Sidebar';
+
 function Layout() {
-  const { user, logout } = useAuth();
-  const isManager = user.role === 'PM' || user.role === 'SUPER_ADMIN';
+  const { user } = useAuth();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile state
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    // Persist collapsed state
+    const saved = localStorage.getItem('sidebar-collapsed');
+    return saved === 'true';
+  });
+
+  const toggleSidebarCollapse = () => {
+    setIsSidebarCollapsed(!isSidebarCollapsed);
+    localStorage.setItem('sidebar-collapsed', !isSidebarCollapsed);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow-md sticky top-0 z-50">
-        <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4 sm:gap-8">
-              <Link to="/dashboard" className="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight">
-                Bauberg<span className="text-indigo-600">Control</span>
-              </Link>
-              {isManager && (
-                <div className="hidden sm:flex items-center gap-4">
-                  <Link to="/dashboard" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Обзор</Link>
-                  <Link to="/analytics" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Аналитика</Link>
-                  <Link to="/drafts" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Черновики</Link>
-                </div>
-              )}
-            </div>
-            <div className="flex items-center">
-              <NotificationBell />
-              <div className="flex flex-col items-end mr-3 sm:mr-4">
-                <span className="text-xs sm:text-sm font-bold text-slate-800 leading-none truncate max-w-[100px] sm:max-w-none">{user.fullName.split(' ')[0]}</span>
-                <span className="text-[9px] sm:text-[10px] font-medium text-slate-500 uppercase tracking-wider mt-0.5">{user.role}</span>
-              </div>
-              <button
-                onClick={logout}
-                className="p-2 sm:px-4 sm:py-2 bg-slate-100 text-slate-700 text-xs sm:text-sm font-bold rounded-xl hover:bg-red-50 hover:text-red-600 transition-all"
-                title="Выйти"
-              >
-                <span className="hidden sm:inline">Выйти</span>
-                <svg className="w-4 h-4 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-              </button>
-            </div>
+    <div className="min-h-screen bg-slate-50/50">
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        isCollapsed={isSidebarCollapsed}
+        toggleCollapse={toggleSidebarCollapse}
+      />
+
+      {/* Mobile Header (visible only on small screens) */}
+      <header className="md:hidden bg-white/90 backdrop-blur-md sticky top-0 z-30 border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+          </button>
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="Bauberg" className="w-8 h-8 object-contain" />
+            <span className="font-bold text-slate-900 text-lg tracking-tight">Bauberg</span>
           </div>
-          {/* Mobile Nav for Managers */}
-          {isManager && (
-            <div className="flex sm:hidden items-center gap-4 pb-2 border-t border-slate-50 pt-2">
-              <Link to="/dashboard" className="text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-indigo-600">Обзор</Link>
-              <Link to="/analytics" className="text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-indigo-600">Аналитика</Link>
-              <Link to="/drafts" className="text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-indigo-600">Черновики</Link>
-            </div>
-          )}
-        </nav>
+        </div>
       </header>
-      <main className="container mx-auto p-4 sm:p-6 lg:p-8">
-        <Outlet />
+
+      <main
+        className={`transition-all duration-300 p-4 sm:p-6 lg:p-8
+            ${isSidebarCollapsed ? 'md:pl-20' : 'md:pl-72'}
+        `}
+      >
+        <div className="max-w-7xl mx-auto">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

@@ -6,21 +6,21 @@ import { STATUSES, ROLES } from '../utils/mockData';
 const getStatusStyles = (status) => {
     switch (status) {
         case STATUSES.COMPLETED:
-            return 'bg-green-100 text-green-800';
+            return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
         case STATUSES.ACTIVE:
-            return 'bg-blue-100 text-blue-800';
+            return 'bg-blue-50 text-bauberg-blue border border-blue-200';
         case STATUSES.REWORK:
         case STATUSES.REWORK_FOREMAN:
-            return 'bg-red-100 text-red-800';
+            return 'bg-amber-50 text-amber-700 border border-amber-200';
         case STATUSES.REWORK_PM:
-            return 'bg-rose-100 text-rose-900 border border-rose-200';
+            return 'bg-rose-50 text-rose-700 border border-rose-200';
         case STATUSES.UNDER_REVIEW_FOREMAN:
         case STATUSES.UNDER_REVIEW_PM:
-            return 'bg-yellow-100 text-yellow-800';
+            return 'bg-indigo-50 text-indigo-700 border border-indigo-200';
         case STATUSES.LOCKED:
-            return 'bg-gray-200 text-gray-600';
+            return 'bg-slate-100 text-slate-500 border border-slate-200';
         default:
-            return 'bg-gray-100 text-gray-800';
+            return 'bg-slate-50 text-slate-700 border border-slate-200';
     }
 };
 
@@ -28,13 +28,13 @@ const getStatusStyles = (status) => {
 const getPriorityStyles = (priority) => {
     switch (priority) {
         case 'high':
-            return 'text-red-500';
+            return 'text-rose-600';
         case 'medium':
-            return 'text-yellow-500';
+            return 'text-amber-600';
         case 'low':
-            return 'text-green-500';
+            return 'text-emerald-600';
         default:
-            return 'text-gray-500';
+            return 'text-slate-400';
     }
 }
 
@@ -43,8 +43,8 @@ const translateStatus = (status) => {
     const translations = {
         [STATUSES.LOCKED]: 'В очереди',
         [STATUSES.ACTIVE]: 'В работе',
-        [STATUSES.UNDER_REVIEW_FOREMAN]: 'Этап 1: У прораба',
-        [STATUSES.UNDER_REVIEW_PM]: 'Этап 2: У ПМ',
+        [STATUSES.UNDER_REVIEW_FOREMAN]: 'Проверка: Прораб',
+        [STATUSES.UNDER_REVIEW_PM]: 'Проверка: ПМ',
         [STATUSES.REWORK]: 'Доработка',
         [STATUSES.REWORK_FOREMAN]: 'Доработка (Прораб)',
         [STATUSES.REWORK_PM]: 'Доработка (ПМ)',
@@ -75,53 +75,67 @@ const TaskCard = ({ task, userRole }) => {
     return (
         <Link
             to={getTaskLink()}
-            className={`block bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-100 transition-all duration-300 group
-                ${isLocked ? 'opacity-70 bg-slate-50 hover:opacity-100 hover:border-slate-200 cursor-pointer' : 'hover-card active:scale-[0.98]'}
+            className={`block relative overflow-hidden group transition-all duration-200
+                ${isLocked
+                    ? 'opacity-70 bg-slate-50 border border-slate-200 rounded-xl p-5 hover:opacity-100'
+                    : 'card-premium p-5'
+                }
             `}
         >
-            <div className="flex justify-between items-start mb-3 sm:mb-4">
-                <div className="flex-1 min-w-0 mr-2">
-                    <span className="text-[10px] sm:text-xs font-semibold tracking-wider text-indigo-500 uppercase mb-1 block truncate">
-                        {task.object}
-                    </span>
-                    <h3 className="text-base sm:text-lg font-bold text-slate-800 group-hover:text-indigo-600 transition-colors flex items-center gap-2 truncate">
-                        {task.title}
-                        {isLocked && <svg className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>}
-                    </h3>
-                </div>
-                <div className={`px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold tracking-wide shrink-0 ${getStatusStyles(task.status)}`}>
+            {/* Status Badge */}
+            <div className="flex justify-between items-start mb-4">
+                <div className={`px-3 py-1.5 rounded-md text-xs font-bold tracking-wide uppercase shadow-sm ${getStatusStyles(task.status)}`}>
                     {translateStatus(task.status)}
                 </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-y-2 gap-x-4 mb-4 sm:mb-6">
-                {task.assigneeNames && task.assigneeNames.length > 0 && (
-                    <div className="flex items-center text-slate-500 text-xs sm:text-sm">
-                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                        <span className="font-medium text-slate-700">{task.assigneeNames.join(', ')}</span>
+                {task.priority === 'HIGH' && (
+                    <div className="flex items-center gap-1.5 bg-rose-50 px-2 py-1 rounded text-rose-600 text-[10px] font-bold uppercase border border-rose-100">
+                        <span>Важно</span>
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                        </span>
                     </div>
                 )}
-                <div className="flex items-center text-slate-500 text-xs sm:text-sm">
-                    <svg className={`w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 ${getPriorityStyles(task.priority)}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                    <span className="capitalize">{task.priority === 'HIGH' ? 'Высокий' : task.priority === 'MEDIUM' ? 'Средний' : 'Низкий'}</span>
+            </div>
+
+            {/* Content */}
+            <div className="mb-5">
+                <div className="text-xs font-bold tracking-wider text-bauberg-sky uppercase mb-1.5 truncate">
+                    {task.object}
                 </div>
-                <div className="flex items-center text-slate-500 text-xs sm:text-sm">
-                    <svg className={`w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 ${isDeadlinePassed ? 'text-red-500' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    <span className={isDeadlinePassed ? 'text-red-600 font-medium' : ''}>
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900 group-hover:text-bauberg-blue transition-colors leading-tight">
+                    {task.title}
+                </h3>
+            </div>
+
+            {/* Meta Info */}
+            <div className="flex flex-wrap items-center gap-y-3 gap-x-5 mb-5 border-t border-slate-100 pt-4">
+                {task.assigneeNames && task.assigneeNames.length > 0 && (
+                    <div className="flex items-center text-slate-600 text-sm font-medium">
+                        <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600 mr-2 border border-slate-200">
+                            {task.assigneeNames[0].charAt(0)}
+                        </div>
+                        <span className="truncate max-w-[120px]">{task.assigneeNames.join(', ')}</span>
+                    </div>
+                )}
+
+                <div className="flex items-center text-slate-600 text-sm">
+                    <svg className={`w-4 h-4 mr-1.5 ${isDeadlinePassed ? 'text-rose-500' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <span className={isDeadlinePassed ? 'text-rose-600 font-bold' : 'font-medium'}>
                         {new Date(task.deadline).toLocaleDateString()}
                     </span>
                 </div>
             </div>
 
-            {/* Premium Progress Bar */}
-            <div className={`mt-2 ${isLocked ? 'opacity-50' : ''}`}>
-                <div className="flex justify-between text-[10px] sm:text-xs mb-1 sm:mb-1.5">
+            {/* Progress Bar (Simpler) */}
+            <div className={`mt-auto ${isLocked ? 'opacity-50' : ''}`}>
+                <div className="flex justify-between text-xs mb-2 align-bottom">
                     <span className="text-slate-500 font-medium">Прогресс</span>
-                    <span className="text-indigo-600 font-bold">{completionPercentage}%</span>
+                    <span className="text-bauberg-blue font-bold">{completionPercentage}%</span>
                 </div>
-                <div className="w-full bg-slate-100 rounded-full h-1.5 sm:h-2 overflow-hidden">
+                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-100">
                     <div
-                        className="bg-gradient-to-r from-indigo-500 to-indigo-600 h-1.5 sm:h-2 rounded-full transition-all duration-500 ease-out"
+                        className="bg-bauberg-blue h-full rounded-full transition-all duration-500 ease-out"
                         style={{ width: `${completionPercentage}%` }}
                     ></div>
                 </div>
