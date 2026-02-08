@@ -63,6 +63,14 @@ const TaskDetail = () => {
         fetchTask();
     }, [id]);
 
+    // Redirect Foreman to Review Page if task is under review
+    // Redirect Foreman to Review Page if task is under review or returned by PM
+    useEffect(() => {
+        if (task && user?.role === ROLES.FOREMAN && (task.status === STATUSES.UNDER_REVIEW_FOREMAN || task.status === STATUSES.REWORK_PM)) {
+            navigate(`/review/${id}`, { replace: true });
+        }
+    }, [task, user, id, navigate]);
+
     const handleFinalPhotoChange = async (base64) => {
         const result = await api.updateTaskFinalPhoto(id, base64);
         if (result.success) {
@@ -81,7 +89,8 @@ const TaskDetail = () => {
             return;
         }
 
-        if (!task.finalPhotoUrl) {
+        // Final photo check (Strict for NON-Workers)
+        if (!isMqWorker && !task.finalPhotoUrl) {
             alert('Пожалуйста, загрузите финальное фото результата.');
             return;
         }
@@ -103,24 +112,37 @@ const TaskDetail = () => {
         }
     };
 
-    const isEditable = user?.role === ROLES.WORKER && (
-        task?.status === STATUSES.ACTIVE ||
-        task?.status === STATUSES.REWORK_FOREMAN ||
-        task?.status === STATUSES.REWORK_PM
+    const isEditable = (
+        (user?.role === ROLES.WORKER && (task?.status === STATUSES.ACTIVE || task?.status === STATUSES.REWORK_FOREMAN)) ||
+        (user?.role === ROLES.FOREMAN && (task?.status === STATUSES.ACTIVE || task?.status === STATUSES.REWORK_FOREMAN || task?.status === STATUSES.REWORK_PM))
     );
 
     if (loading) return <div className="text-center py-20">Загрузка задачи...</div>;
     if (error) return <div className="text-center py-20 text-red-500">{error}</div>;
     if (!task) return null;
 
-    const incompleteChecklist = task?.checklist?.filter(item =>
-        !item.isCompleted || (item.isPhotoRequired && !item.photoUrl)
-    ) || [];
-    const isChecklistComplete = task.checklist?.every(item =>
-        item.isCompleted && (!item.isPhotoRequired || item.photoUrl)
-    );
+    // Validation Logic
+    const isMqWorker = user?.role === ROLES.WORKER;
+
+    const incompleteChecklist = task?.checklist?.filter(item => {
+        // Common: Must be marked completed
+        if (!item.isCompleted) return true;
+
+        // Worker: Photo not required for submission
+        if (isMqWorker) return false;
+
+        // Foreman/Others: Photo required if flagged
+        return item.isPhotoRequired && !item.photoUrl;
+    }) || [];
+
+    const isChecklistComplete = incompleteChecklist.length === 0;
+
     const isFinalPhotoUploaded = !!task.finalPhotoUrl;
-    const isReadyToSubmit = isChecklistComplete && isFinalPhotoUploaded;
+
+    // Worker can submit without final photo and without item photos
+    const isReadyToSubmit = isMqWorker
+        ? isChecklistComplete // Workers only need to check the boxes
+        : isChecklistComplete && isFinalPhotoUploaded; // Foremen need photos + final result
 
     return (
         <div className="max-w-4xl mx-auto space-y-6 pb-20">

@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import PhotoUpload from './PhotoUpload';
 import api from '../api/client';
+import { useAuth } from '../hooks/useAuth';
+import { ROLES } from '../utils/mockData';
 
 const ChecklistSection = ({ taskId, checklists, onUpdate, readOnly = false, canRemark = false }) => {
     const [items, setItems] = useState(checklists || []);
     const [loading, setLoading] = useState(false);
+    const { user } = useAuth();
+    const isWorker = user?.role === ROLES.WORKER;
 
     useEffect(() => {
         if (checklists) {
@@ -25,10 +29,16 @@ const ChecklistSection = ({ taskId, checklists, onUpdate, readOnly = false, canR
             await handlePhotoUpdate(itemId, null);
         }
 
-        // If checking an item that requires a photo but has none - DO NOT ALLOW
+        // Check photo requirement logic
         if (newStatus === true && item.isPhotoRequired && !item.photoUrl) {
-            alert("Для этого пункта обязательно необходимо прикрепить фотографию перед отметкой о выполнении.");
-            return; // Exit without toggling
+            if (isWorker) {
+                // Worker can check without photo. The backend sends notification.
+                // Proceed without blocking.
+            } else {
+                // Others (Foreman etc) must attach photo first
+                alert("Для этого пункта обязательно необходимо прикрепить фотографию перед отметкой о выполнении.");
+                return; // Exit without toggling
+            }
         }
 
         setLoading(true);
@@ -156,7 +166,7 @@ const ChecklistSection = ({ taskId, checklists, onUpdate, readOnly = false, canR
 
                                 {!readOnly && (
                                     <div className="space-y-3">
-                                        {item.isPhotoRequired && (
+                                        {item.isPhotoRequired && !isWorker && (
                                             <PhotoUpload
                                                 currentPhoto={item.photoUrl}
                                                 onPhotoChange={(photo) => handlePhotoUpdate(item.id, photo)}
@@ -164,10 +174,29 @@ const ChecklistSection = ({ taskId, checklists, onUpdate, readOnly = false, canR
                                                 disabled={loading}
                                             />
                                         )}
+                                        {item.isPhotoRequired && isWorker && !item.photoUrl && item.isCompleted && (
+                                            <div className="text-xs text-amber-600 bg-amber-50 p-2 rounded border border-amber-100">
+                                                Ожидает фото от прораба
+                                            </div>
+                                        )}
                                         {item.remark && (
                                             <div className="bg-rose-50 border border-rose-100 p-3 rounded-xl">
                                                 <p className="text-[10px] font-bold text-rose-700 uppercase tracking-widest mb-1 pl-1">Исправить:</p>
                                                 <p className="text-sm text-rose-800 italic leading-relaxed pl-1">"{item.remark}"</p>
+                                            </div>
+                                        )}
+                                        {canRemark && (
+                                            <div className="mt-2">
+                                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Замечание к этому пункту</label>
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Напишите замечание..."
+                                                        defaultValue={item.remark || ''}
+                                                        onBlur={(e) => handleRemarkUpdate(item.id, e.target.value)}
+                                                        className="flex-1 px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                                                    />
+                                                </div>
                                             </div>
                                         )}
                                     </div>

@@ -186,7 +186,7 @@ const ReviewTask = () => {
                         <ChecklistSection
                             taskId={id}
                             checklists={task.checklist}
-                            readOnly={true}
+                            readOnly={user.role !== ROLES.FOREMAN}
                             canRemark={true}
                             onUpdate={async () => {
                                 const fetchedTask = await api.getTaskById(id);
