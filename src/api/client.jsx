@@ -634,6 +634,58 @@ export const apiClient = {
             console.error("Delete template error", error);
             return { success: false, message: error.response?.data?.message || 'Failed to delete template' };
         }
+    },
+    // --- SubObject Template APIs ---
+    createSubObjectTemplate: async (name) => {
+        try {
+            const response = await api.post(`/api/templates/sub-object?name=${encodeURIComponent(name)}`);
+            return { success: true, data: response.data };
+        } catch (error) {
+            console.error("Create sub-object template error", error);
+            return { success: false, message: error.response?.data?.message };
+        }
+    },
+
+    getAllSubObjectTemplates: async () => {
+        try {
+            const response = await api.get('/api/templates/sub-object');
+            return response.data;
+        } catch (error) {
+            console.error("Get sub-object templates error", error);
+            return [];
+        }
+    },
+
+    addTaskTemplateToSubObject: async (templateId, taskName, checklistTemplateId, orderIndex) => {
+        try {
+            const response = await api.post(`/api/templates/sub-object/${templateId}/tasks`, null, {
+                params: { taskName, checklistTemplateId, orderIndex }
+            });
+            return { success: true, data: response.data };
+        } catch (error) {
+            console.error("Add task template error", error);
+            return { success: false, message: error.response?.data?.message };
+        }
+    },
+
+    deleteSubObjectTemplate: async (id) => {
+        try {
+            await api.delete(`/api/templates/sub-object/${id}`);
+            return { success: true };
+        } catch (error) {
+            console.error("Delete sub-object template error", error);
+            return { success: false, message: error.response?.data?.message };
+        }
+    },
+
+    applySubObjectTemplate: async (templateId, subObjectId) => {
+        try {
+            const response = await api.post(`/api/templates/sub-object/${templateId}/apply/${subObjectId}`);
+            return { success: true, data: response.data };
+        } catch (error) {
+            console.error("Apply template error", error);
+            return { success: false, message: error.response?.data?.message };
+        }
     }
 };
 

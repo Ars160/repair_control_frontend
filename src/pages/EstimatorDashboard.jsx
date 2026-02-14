@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../api/client';
 import ChecklistManager from '../components/ChecklistManager';
 import ChecklistTemplateManager from '../components/ChecklistTemplateManager';
+import SubObjectTemplateManager from '../components/SubObjectTemplateManager';
 
 const EstimatorDashboard = () => {
     const [projects, setProjects] = useState([]);
@@ -26,7 +27,7 @@ const EstimatorDashboard = () => {
     // Form Data
     const [newProject, setNewProject] = useState({ name: '', description: '', deadline: '' });
     const [newObject, setNewObject] = useState({ name: '', address: '' });
-    const [newSubObject, setNewSubObject] = useState({ name: '' });
+    const [newSubObject, setNewSubObject] = useState({ name: '', templateId: '' });
     const [newTask, setNewTask] = useState({
         title: '',
         taskType: 'SEQUENTIAL',
@@ -261,33 +262,54 @@ const EstimatorDashboard = () => {
     // SubObject
     const handleCreateSubObject = async (e, objectId) => {
         e.preventDefault();
-        if (editingSubObjectId) {
-            const res = await api.updateSubObject(editingSubObjectId, newSubObject);
+
+        let subObjectId = editingSubObjectId;
+
+        if (subObjectId) {
+            const res = await api.updateSubObject(subObjectId, newSubObject);
             if (res.success) {
                 setObjectSubObjects(prev => ({
                     ...prev,
-                    [objectId]: prev[objectId].map(s => s.id === editingSubObjectId ? res.data : s)
+                    [objectId]: prev[objectId].map(s => s.id === subObjectId ? res.data : s)
                 }));
                 setShowSubObjectForm(null);
                 setEditingSubObjectId(null);
-                setNewSubObject({ name: '' });
+                setNewSubObject({ name: '', templateId: '' });
             } else alert(res.message);
         } else {
             const res = await api.createSubObject({ ...newSubObject, objectId });
             if (res.success) {
+                subObjectId = res.data.id;
                 setObjectSubObjects(prev => ({
                     ...prev,
                     [objectId]: [...(prev[objectId] || []), res.data]
                 }));
+
+                // Apply template if selected
+                if (newSubObject.templateId) {
+                    const applyRes = await api.applySubObjectTemplate(Number(newSubObject.templateId), subObjectId);
+                    if (!applyRes.success) {
+                        alert(`Подобъект создан, но шаблон не применился: ${applyRes.message}`);
+                    } else {
+                        // Refresh tasks for this subobject to show the newly created tasks
+                        const tasksData = await api.getTasksBySubObject(subObjectId);
+                        setSubObjectTasks(prev => ({ ...prev, [subObjectId]: tasksData }));
+                        // Auto-expand the subobject to show tasks
+                        if (!expandedSubObjects[subObjectId]) {
+                            toggleSubObject(subObjectId);
+                        }
+                    }
+                }
+
                 setShowSubObjectForm(null);
-                setNewSubObject({ name: '' });
+                setNewSubObject({ name: '', templateId: '' });
             } else alert(res.message);
         }
     };
 
     const startEditSubObject = (e, subObject, objectId) => {
         e.stopPropagation();
-        setNewSubObject({ name: subObject.name });
+        setNewSubObject({ name: subObject.name, templateId: '' }); // Templates apply only on creation mostly, or explicit action
         setEditingSubObjectId(subObject.id);
         setShowSubObjectForm(objectId);
     };
@@ -412,11 +434,18 @@ const EstimatorDashboard = () => {
 
     // --- Template Manager ---
     const [showTemplateManager, setShowTemplateManager] = useState(false);
-    const [templates, setTemplates] = useState([]);
+    const [showSubObjectTemplateManager, setShowSubObjectTemplateManager] = useState(false);
+    const [templates, setTemplates] = useState([]); // Checklist Templates
+    const [subObjectTemplates, setSubObjectTemplates] = useState([]); // SubObject Templates
 
     const loadTemplates = async () => {
         const data = await api.getTemplates();
         setTemplates(data);
+    };
+
+    const loadSubObjectTemplates = async () => {
+        const data = await api.getAllSubObjectTemplates();
+        setSubObjectTemplates(data);
     };
 
     useEffect(() => {
@@ -424,6 +453,12 @@ const EstimatorDashboard = () => {
             loadTemplates();
         }
     }, [showTaskForm]);
+
+    useEffect(() => {
+        if (showSubObjectForm) {
+            loadSubObjectTemplates();
+        }
+    }, [showSubObjectForm]);
 
     const handleTemplateSelect = (e) => {
         const value = e.target.value;
@@ -479,6 +514,11 @@ const EstimatorDashboard = () => {
                     onClose={() => setShowTemplateManager(false)}
                 />
             )}
+            {showSubObjectTemplateManager && (
+                <SubObjectTemplateManager
+                    onClose={() => setShowSubObjectTemplateManager(false)}
+                />
+            )}
 
             {/* Dashboard Header */}
             <div className="flex justify-between items-center bg-white/60 p-4 sm:p-6 rounded-2xl glass-panel sticky top-4 z-20 backdrop-blur-xl">
@@ -488,13 +528,22 @@ const EstimatorDashboard = () => {
                 </div>
                 <div className="flex gap-2">
                     <button
+                        onClick={() => setShowSubObjectTemplateManager(true)}
+                        className="flex items-center px-3 py-2 sm:px-4 sm:py-2.5 bg-white text-orange-600 border border-orange-200 rounded-xl font-medium shadow-sm hover:bg-orange-50 transition-all"
+                    >
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                        </svg>
+                        <span className="hidden sm:inline">Шаблоны Работ</span>
+                    </button>
+                    <button
                         onClick={() => setShowTemplateManager(true)}
                         className="flex items-center px-3 py-2 sm:px-4 sm:py-2.5 bg-white text-indigo-600 border border-indigo-200 rounded-xl font-medium shadow-sm hover:bg-indigo-50 transition-all"
                     >
                         <svg className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                         </svg>
-                        <span className="hidden sm:inline">Шаблоны</span>
+                        <span className="hidden sm:inline">Чеклисты</span>
                     </button>
                     <button
                         onClick={() => {
@@ -724,20 +773,34 @@ const EstimatorDashboard = () => {
                                                     </div>
 
                                                     {showSubObjectForm === object.id && (
-                                                        <form onSubmit={(e) => handleCreateSubObject(e, object.id)} className="mb-3 flex flex-col sm:flex-row gap-2 relative">
-                                                            <input
-                                                                className={`flex-1 border-slate-200 rounded-lg text-sm px-3 py-1.5 focus:ring-indigo-500 focus:border-indigo-500 ${editingSubObjectId ? 'border-orange-200 bg-orange-50' : ''}`}
-                                                                placeholder="Название (напр. Кухня, Этаж 1)"
-                                                                value={newSubObject.name}
-                                                                onChange={e => setNewSubObject({ ...newSubObject, name: e.target.value })}
-                                                                required
-                                                            />
-                                                            <div className="flex gap-2">
+                                                        <form onSubmit={(e) => handleCreateSubObject(e, object.id)} className="mb-3 flex flex-col sm:flex-row gap-2 relative items-start sm:items-center">
+                                                            <div className="flex-1 w-full space-y-2 sm:space-y-0 sm:flex sm:gap-2">
+                                                                <input
+                                                                    className={`w-full sm:flex-1 border-slate-200 rounded-lg text-sm px-3 py-1.5 focus:ring-indigo-500 focus:border-indigo-500 ${editingSubObjectId ? 'border-orange-200 bg-orange-50' : ''}`}
+                                                                    placeholder="Название (напр. Кухня, Этаж 1)"
+                                                                    value={newSubObject.name}
+                                                                    onChange={e => setNewSubObject({ ...newSubObject, name: e.target.value })}
+                                                                    required
+                                                                />
+                                                                {!editingSubObjectId && (
+                                                                    <select
+                                                                        className="w-full sm:w-48 border-slate-200 rounded-lg text-sm px-3 py-1.5 focus:ring-indigo-500 focus:border-indigo-500 text-slate-600"
+                                                                        value={newSubObject.templateId}
+                                                                        onChange={e => setNewSubObject({ ...newSubObject, templateId: e.target.value })}
+                                                                    >
+                                                                        <option value="">Без шаблона</option>
+                                                                        {subObjectTemplates.map(t => (
+                                                                            <option key={t.id} value={t.id}>{t.name}</option>
+                                                                        ))}
+                                                                    </select>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex gap-2 w-full sm:w-auto">
                                                                 <button type="submit" className={`flex-1 sm:flex-none text-white px-3 py-1.5 rounded-lg text-sm font-bold ${editingSubObjectId ? 'bg-orange-500 hover:bg-orange-600' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
                                                                     {editingSubObjectId ? 'Сохр.' : 'OK'}
                                                                 </button>
                                                                 {editingSubObjectId && (
-                                                                    <button type="button" onClick={() => { setShowSubObjectForm(null); setEditingSubObjectId(null); setNewSubObject({ name: '' }); }} className="flex-1 sm:flex-none bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg text-sm font-bold">Отм.</button>
+                                                                    <button type="button" onClick={() => { setShowSubObjectForm(null); setEditingSubObjectId(null); setNewSubObject({ name: '', templateId: '' }); }} className="flex-1 sm:flex-none bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg text-sm font-bold">Отм.</button>
                                                                 )}
                                                             </div>
                                                         </form>
