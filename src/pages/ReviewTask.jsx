@@ -295,9 +295,16 @@ const ReviewTask = () => {
                     </div>
                 )}
 
-                {/* Right side: actions */}
-                <div className="bg-slate-50 p-5 sm:p-6 rounded-2xl border border-slate-100">
-                    <h2 className="text-lg sm:text-xl font-bold text-slate-800 mb-5">Действия</h2>
+                {/* Actions Panel */}
+                <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-100 shadow-sm sticky top-6">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                            </svg>
+                        </div>
+                        <h2 className="text-xl font-bold text-slate-900">Принятие решения</h2>
+                    </div>
 
                     {!showCommentForm ? (
                         <div className="space-y-4">
@@ -310,18 +317,31 @@ const ReviewTask = () => {
                                     }
                                 }}
                                 disabled={isProcessing}
-                                className="w-full px-6 py-4 text-base font-bold text-white bg-emerald-600 rounded-xl shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all active:scale-[0.98] disabled:bg-slate-300"
+                                className="w-full relative group overflow-hidden px-6 py-5 rounded-xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {isProcessing ? 'Обработка...' :
-                                    (user.role === ROLES.FOREMAN && task.status === STATUSES.REWORK_PM) ? 'Отправить ПМ (Исправлено)' :
-                                        'Принять работу'}
+                                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 transition-all group-hover:scale-105"></div>
+                                <div className="relative flex items-center justify-center gap-2 text-white font-bold text-lg">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    {isProcessing ? 'Обработка...' :
+                                        (user.role === ROLES.FOREMAN && task.status === STATUSES.REWORK_PM) ? 'Отправить ПМ (Исправлено)' :
+                                            'Принять работу'}
+                                </div>
                             </button>
+
                             <button
                                 onClick={() => openCommentForm('REJECT')}
                                 disabled={isProcessing}
-                                className="w-full px-6 py-4 text-base font-bold text-white bg-rose-600 rounded-xl shadow-lg shadow-rose-100 hover:bg-rose-700 transition-all active:scale-[0.98] disabled:bg-slate-300"
+                                className="w-full relative group overflow-hidden px-6 py-5 rounded-xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {(user.role === ROLES.FOREMAN && task.status === STATUSES.REWORK_PM) ? 'Вернуть работнику' : 'На доработку'}
+                                <div className="absolute inset-0 bg-white border-2 border-slate-100 group-hover:bg-rose-50 group-hover:border-rose-200 transition-all"></div>
+                                <div className="relative flex items-center justify-center gap-2 text-slate-700 group-hover:text-rose-600 font-bold text-lg">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                    {(user.role === ROLES.FOREMAN && task.status === STATUSES.REWORK_PM) ? 'Вернуть работнику' : 'На доработку'}
+                                </div>
                             </button>
                         </div>
                     ) : (

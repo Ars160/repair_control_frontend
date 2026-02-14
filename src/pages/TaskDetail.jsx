@@ -112,9 +112,11 @@ const TaskDetail = () => {
         }
     };
 
+    const isReworkStatus = [STATUSES.REWORK, STATUSES.REWORK_FOREMAN, STATUSES.REWORK_PM].includes(task?.status);
+
     const isEditable = (
-        (user?.role === ROLES.WORKER && (task?.status === STATUSES.ACTIVE || task?.status === STATUSES.REWORK_FOREMAN)) ||
-        (user?.role === ROLES.FOREMAN && (task?.status === STATUSES.ACTIVE || task?.status === STATUSES.REWORK_FOREMAN || task?.status === STATUSES.REWORK_PM))
+        (user?.role === ROLES.WORKER && (task?.status === STATUSES.ACTIVE || isReworkStatus)) ||
+        (user?.role === ROLES.FOREMAN && (task?.status === STATUSES.ACTIVE || isReworkStatus))
     );
 
     if (loading) return <div className="text-center py-20">Загрузка задачи...</div>;
@@ -125,8 +127,8 @@ const TaskDetail = () => {
     const isMqWorker = user?.role === ROLES.WORKER;
 
     const incompleteChecklist = task?.checklist?.filter(item => {
-        // Common: Must be marked completed
-        if (!item.isCompleted) return true;
+        // Common: Must be marked completed AND have no remarks
+        if (!item.isCompleted || item.remark) return true;
 
         // Worker: Photo not required for submission
         if (isMqWorker) return false;
@@ -202,6 +204,43 @@ const TaskDetail = () => {
                 </div>
             </div>
 
+            {/* Rework Banner for Workers - Immediate Action Required */}
+            {isReworkStatus && user?.role === ROLES.WORKER && (
+                <div className="bg-red-50 border-l-4 border-red-500 p-6 rounded-r-xl shadow-sm mb-6 animate-pulse-slow">
+                    <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0 bg-red-100 p-2 rounded-full">
+                            <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-lg font-bold text-red-800 uppercase tracking-tight mb-1">
+                                Требуется доработка!
+                            </h3>
+                            <p className="text-sm text-red-700 font-medium mb-3 leading-relaxed">
+                                Прораб вернул задачу. Пожалуйста, исправьте замечания ниже и отправьте отчет повторно.
+                            </p>
+
+                            {(task.rejectionReason || task.foremanNote) && (
+                                <div className="bg-white/60 rounded-lg p-3 border border-red-100 text-sm text-red-800 italic mb-3">
+                                    "{task.rejectionReason || task.foremanNote}"
+                                </div>
+                            )}
+
+                            <button
+                                onClick={() => document.getElementById('checklist-section')?.scrollIntoView({ behavior: 'smooth' })}
+                                className="px-4 py-2 bg-red-600 text-white text-sm font-bold rounded-lg shadow hover:bg-red-700 transition-colors flex items-center gap-2"
+                            >
+                                <span>Перейти к замечаниям</span>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Locked Task Banner for Workers */}
             {task.status === STATUSES.LOCKED && user?.role === ROLES.WORKER && (
                 <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-xl animate-pulse">
@@ -222,7 +261,8 @@ const TaskDetail = () => {
             {/* History/Notes */}
             <ApprovalHistory approvals={task.approvals} />
 
-            {(task.rejectionReason || task.foremanNote) && (
+            {/* Only show rejection/notes blocks if NOT worker (since worker sees the big banner) or if they want history */}
+            {!isMqWorker && (task.rejectionReason || task.foremanNote) && (
                 <div className="space-y-4 mb-6">
                     {task.rejectionReason && (
                         <div className="bg-red-50 border-l-4 border-red-400 p-4">
@@ -269,7 +309,7 @@ const TaskDetail = () => {
 
             <div className="space-y-8">
                 {/* Checklist Section */}
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6">
+                <div id="checklist-section" className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6 scroll-mt-24">
                     <ChecklistSection
                         taskId={id}
                         checklists={task.checklist}
@@ -299,8 +339,18 @@ const TaskDetail = () => {
                                     </h3>
 
                                     {isMqWorker ? (
-                                        <div className="text-sm text-slate-500 italic bg-white/50 p-3 rounded-lg border border-slate-100">
-                                            Фото результата загрузит прораб при проверке.
+                                        <div className="bg-indigo-50 rounded-2xl p-6 border border-indigo-100 flex items-start gap-4">
+                                            <div className="p-3 bg-white rounded-xl shadow-sm text-indigo-600">
+                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h4 className="text-sm font-bold text-indigo-900 mb-1">Фото результата не требуется</h4>
+                                                <p className="text-sm text-indigo-700 leading-relaxed">
+                                                    Прораб самостоятельно сделает и загрузит фото при проверке вашей работы.
+                                                </p>
+                                            </div>
                                         </div>
                                     ) : (
                                         <PhotoUpload
