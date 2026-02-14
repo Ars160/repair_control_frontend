@@ -297,12 +297,19 @@ const TaskDetail = () => {
                                             </span>
                                         )}
                                     </h3>
-                                    <PhotoUpload
-                                        currentPhoto={task.finalPhotoUrl}
-                                        onPhotoChange={handleFinalPhotoChange}
-                                        disabled={!isChecklistComplete || loading}
-                                        label={isChecklistComplete ? "Загрузите финальное фото" : "Доступно после выполнения всех пунктов чек-листа"}
-                                    />
+
+                                    {isMqWorker ? (
+                                        <div className="text-sm text-slate-500 italic bg-white/50 p-3 rounded-lg border border-slate-100">
+                                            Фото результата загрузит прораб при проверке.
+                                        </div>
+                                    ) : (
+                                        <PhotoUpload
+                                            currentPhoto={task.finalPhotoUrl}
+                                            onPhotoChange={handleFinalPhotoChange}
+                                            disabled={!isChecklistComplete || loading}
+                                            label={isChecklistComplete ? "Загрузите финальное фото" : "Доступно после выполнения всех пунктов чек-листа"}
+                                        />
+                                    )}
                                 </div>
                             ) : (
                                 task.finalPhotoUrl && (

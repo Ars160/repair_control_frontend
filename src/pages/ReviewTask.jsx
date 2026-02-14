@@ -6,6 +6,7 @@ import api from '../api/client';
 import { STATUSES, ROLES } from '../utils/mockData';
 import ChecklistSection from '../components/ChecklistSection';
 import ApprovalHistory from '../components/ApprovalHistory';
+import PhotoUpload from '../components/PhotoUpload';
 
 const ReviewTask = () => {
     const { id } = useParams();
@@ -21,6 +22,15 @@ const ReviewTask = () => {
     const [showCommentForm, setShowCommentForm] = useState(false);
     const [comment, setComment] = useState('');
     const [actionType, setActionType] = useState(null); // 'APPROVE' or 'REJECT'
+
+    const handleFinalPhotoChange = async (base64) => {
+        const result = await api.updateTaskFinalPhoto(id, base64);
+        if (result.success) {
+            setTask(prev => ({ ...prev, finalPhotoUrl: base64 }));
+        } else {
+            alert('Не удалось загрузить фото: ' + (result.message || 'Неизвестная ошибка'));
+        }
+    };
 
     useEffect(() => {
         const fetchTask = async () => {
@@ -194,16 +204,28 @@ const ReviewTask = () => {
                             }}
                         />
                     </div>
-                    {task.finalPhotoUrl && (
+                    {(task.finalPhotoUrl || (user.role === ROLES.FOREMAN && (task.status === STATUSES.UNDER_REVIEW_FOREMAN || task.status === STATUSES.REWORK_PM))) && (
                         <div className="mb-6">
                             <h3 className="text-lg font-medium text-gray-700 mb-3">Финальный результат</h3>
-                            <a href={task.finalPhotoUrl} target="_blank" rel="noopener noreferrer">
-                                <img
-                                    src={task.finalPhotoUrl}
-                                    alt="Final Result"
-                                    className="rounded-xl object-cover w-full h-64 border border-slate-100 shadow-sm hover:opacity-90 transition"
+
+                            {user.role === ROLES.FOREMAN && (task.status === STATUSES.UNDER_REVIEW_FOREMAN || task.status === STATUSES.REWORK_PM) ? (
+                                <PhotoUpload
+                                    currentPhoto={task.finalPhotoUrl}
+                                    onPhotoChange={handleFinalPhotoChange}
+                                    label={task.finalPhotoUrl ? "Изменить фото результата" : "Загрузить фото результата (обязательно для приемки)"}
+                                    disabled={loading}
                                 />
-                            </a>
+                            ) : (
+                                task.finalPhotoUrl && (
+                                    <a href={task.finalPhotoUrl} target="_blank" rel="noopener noreferrer">
+                                        <img
+                                            src={task.finalPhotoUrl}
+                                            alt="Final Result"
+                                            className="rounded-xl object-cover w-full h-64 border border-slate-100 shadow-sm hover:opacity-90 transition"
+                                        />
+                                    </a>
+                                )
+                            )}
                         </div>
                     )}
                     <div className="mb-6">
