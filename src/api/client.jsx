@@ -622,7 +622,7 @@ export const apiClient = {
             return { success: true, data: response.data };
         } catch (error) {
             console.error("Create template error", error);
-            return { success: false, message: error.response?.data?.message || 'Failed to create template' };
+            return { success: false, message: error.response?.data?.message || 'Failed to create template', status: error.response?.status };
         }
     },
 
@@ -632,7 +632,7 @@ export const apiClient = {
             return { success: true };
         } catch (error) {
             console.error("Delete template error", error);
-            return { success: false, message: error.response?.data?.message || 'Failed to delete template' };
+            return { success: false, message: error.response?.data?.message || 'Failed to delete template', status: error.response?.status };
         }
     },
     // --- SubObject Template APIs ---
@@ -684,6 +684,37 @@ export const apiClient = {
             return { success: true, data: response.data };
         } catch (error) {
             console.error("Apply template error", error);
+            return { success: false, message: error.response?.data?.message };
+        }
+    },
+
+    updateTemplate: async (id, data) => {
+        try {
+            const response = await api.put(`/api/templates/${id}`, data);
+            return { success: true, data: response.data };
+        } catch (error) {
+            console.error("Update template error", error);
+            return { success: false, message: error.response?.data?.message || 'Failed to update template', status: error.response?.status };
+        }
+    },
+
+    updateSubObjectTemplate: async (id, name) => {
+        try {
+            const response = await api.put(`/api/templates/sub-object/${id}?name=${encodeURIComponent(name)}`);
+            return { success: true, data: response.data };
+        } catch (error) {
+            console.error("Update sub-object template error", error);
+            return { success: false, message: error.response?.data?.message };
+        }
+    },
+
+    deleteTaskTemplateFromSubObject: async (taskId) => {
+        try {
+            await api.delete(`/api/templates/sub-object/tasks/${taskId}`);
+            return { success: true };
+        } catch (error) {
+            // Fallback for mock/compatibility if strict endpoint doesn't exist
+            console.error("Delete task template error", error);
             return { success: false, message: error.response?.data?.message };
         }
     }

@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../api/client';
 import ChecklistManager from '../components/ChecklistManager';
-import ChecklistTemplateManager from '../components/ChecklistTemplateManager';
-import SubObjectTemplateManager from '../components/SubObjectTemplateManager';
 
 const EstimatorDashboard = () => {
     const [projects, setProjects] = useState([]);
@@ -248,7 +247,7 @@ const EstimatorDashboard = () => {
 
     const handleDeleteObject = async (e, id, projectId) => {
         e.stopPropagation();
-        if (window.confirm('Удалить объект?')) {
+        if (window.confirm('Удалить раздел?')) {
             const res = await api.deleteObject(id);
             if (res.success) {
                 setProjectObjects(prev => ({
@@ -316,7 +315,7 @@ const EstimatorDashboard = () => {
 
     const handleDeleteSubObject = async (e, id, objectId) => {
         e.stopPropagation();
-        if (window.confirm('Удалить подобъект?')) {
+        if (window.confirm('Удалить подраздел?')) {
             const res = await api.deleteSubObject(id);
             if (res.success) {
                 setObjectSubObjects(prev => ({
@@ -432,9 +431,10 @@ const EstimatorDashboard = () => {
         }
     };
 
-    // --- Template Manager ---
-    const [showTemplateManager, setShowTemplateManager] = useState(false);
-    const [showSubObjectTemplateManager, setShowSubObjectTemplateManager] = useState(false);
+    // --- Template Stats (For Dropdowns) ---
+    // const [showTemplateManager, setShowTemplateManager] = useState(false); // Removed
+    // const [showSubObjectTemplateManager, setShowSubObjectTemplateManager] = useState(false); // Removed
+
     const [templates, setTemplates] = useState([]); // Checklist Templates
     const [subObjectTemplates, setSubObjectTemplates] = useState([]); // SubObject Templates
 
@@ -508,43 +508,12 @@ const EstimatorDashboard = () => {
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20">
-            {/* Template Manager Modal */}
-            {showTemplateManager && (
-                <ChecklistTemplateManager
-                    onClose={() => setShowTemplateManager(false)}
-                />
-            )}
-            {showSubObjectTemplateManager && (
-                <SubObjectTemplateManager
-                    onClose={() => setShowSubObjectTemplateManager(false)}
-                />
-            )}
-
-            {/* Dashboard Header */}
-            <div className="flex justify-between items-center bg-white/60 p-4 sm:p-6 rounded-2xl glass-panel sticky top-4 z-20 backdrop-blur-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/60 p-4 sm:p-6 rounded-2xl glass-panel sticky top-4 z-20 backdrop-blur-xl">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Рабочее пространство</h1>
+                    <h1 className="text-xl sm:text-3xl font-bold text-slate-800 tracking-tight">Рабочее пространство</h1>
                     <p className="text-slate-500 text-xs sm:text-sm mt-1">Управление проектами и задачами</p>
                 </div>
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => setShowSubObjectTemplateManager(true)}
-                        className="flex items-center px-3 py-2 sm:px-4 sm:py-2.5 bg-white text-orange-600 border border-orange-200 rounded-xl font-medium shadow-sm hover:bg-orange-50 transition-all"
-                    >
-                        <svg className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
-                        </svg>
-                        <span className="hidden sm:inline">Шаблоны Работ</span>
-                    </button>
-                    <button
-                        onClick={() => setShowTemplateManager(true)}
-                        className="flex items-center px-3 py-2 sm:px-4 sm:py-2.5 bg-white text-indigo-600 border border-indigo-200 rounded-xl font-medium shadow-sm hover:bg-indigo-50 transition-all"
-                    >
-                        <svg className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                        </svg>
-                        <span className="hidden sm:inline">Чеклисты</span>
-                    </button>
+                <div className="self-end sm:self-auto">
                     <button
                         onClick={() => {
                             if (showProjectForm && editingProjectId) {
@@ -555,61 +524,77 @@ const EstimatorDashboard = () => {
                                 setShowProjectForm(!showProjectForm);
                             }
                         }}
-                        className="flex items-center px-3 py-2 sm:px-4 sm:py-2.5 bg-indigo-600 text-white rounded-xl font-medium shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all hover:-translate-y-0.5"
+                        className={`group flex items-center px-5 py-2.5 rounded-xl font-bold shadow-lg transition-all duration-300 ease-in-out hover:-translate-y-0.5 ${showProjectForm
+                            ? 'bg-slate-100 text-slate-600 hover:bg-slate-200 shadow-slate-200'
+                            : 'bg-indigo-600 text-white shadow-indigo-200 hover:bg-indigo-700'
+                            }`}
                     >
-                        <svg className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-                        <span className="hidden sm:inline">{showProjectForm ? 'Отмена' : 'Новый проект'}</span>
-                        <span className="sm:hidden">{showProjectForm ? '✖' : '+ Проект'}</span>
+                        <div className={`relative w-5 h-5 mr-2 transition-transform duration-300 ease-in-out ${showProjectForm ? 'rotate-45' : 'rotate-0'}`}>
+                            {/* Using a simple Plus icon that forms an X when rotated 45deg */}
+                            <svg className="w-5 h-5 absolute inset-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                        </div>
+                        <span className="transition-opacity duration-300">
+                            {showProjectForm ? 'Отмена' : (
+                                <>
+                                    <span className="hidden sm:inline">Проект</span>
+                                    <span className="sm:hidden">Проект</span>
+                                </>
+                            )}
+                        </span>
                     </button>
                 </div>
             </div>
 
+
+
             {/* Create/Edit Project Form */}
-            {showProjectForm && (
-                <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-indigo-100 animate-fadeIn relative">
-                    <div className={`absolute top-0 left-0 w-1.5 h-full rounded-l-2xl ${editingProjectId ? 'bg-orange-500' : 'bg-indigo-500'}`}></div>
-                    <form onSubmit={handleCreateProject} className="space-y-5">
-                        <div className="flex justify-between items-center mb-2">
-                            <h3 className="text-lg font-bold text-slate-800">{editingProjectId ? 'Редактировать проект' : 'Создание нового проекта'}</h3>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Название</label>
-                                <input
-                                    className="w-full px-4 py-2.5 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all outline-none text-sm"
-                                    placeholder="Например: ЖК Бауберг"
-                                    value={newProject.name}
-                                    onChange={e => setNewProject({ ...newProject, name: e.target.value })}
-                                    required
-                                />
+            {
+                showProjectForm && (
+                    <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-indigo-100 animate-fadeIn relative">
+                        <div className={`absolute top-0 left-0 w-1.5 h-full rounded-l-2xl ${editingProjectId ? 'bg-orange-500' : 'bg-indigo-500'}`}></div>
+                        <form onSubmit={handleCreateProject} className="space-y-5">
+                            <div className="flex justify-between items-center mb-2">
+                                <h3 className="text-lg font-bold text-slate-800">{editingProjectId ? 'Редактировать проект' : 'Создание нового проекта'}</h3>
                             </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Дедлайн</label>
-                                <input
-                                    type="date"
-                                    className="w-full px-4 py-2.5 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all outline-none text-sm"
-                                    value={newProject.deadline}
-                                    onChange={e => setNewProject({ ...newProject, deadline: e.target.value })}
-                                />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Название</label>
+                                    <input
+                                        className="w-full px-4 py-2.5 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all outline-none text-sm"
+                                        placeholder="Например: ЖК Бауберг"
+                                        value={newProject.name}
+                                        onChange={e => setNewProject({ ...newProject, name: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Дедлайн</label>
+                                    <input
+                                        type="date"
+                                        className="w-full px-4 py-2.5 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all outline-none text-sm"
+                                        value={newProject.deadline}
+                                        onChange={e => setNewProject({ ...newProject, deadline: e.target.value })}
+                                    />
+                                </div>
+                                <div className="md:col-span-2 space-y-1">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Описание</label>
+                                    <textarea
+                                        className="w-full px-4 py-2.5 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all outline-none min-h-[80px] sm:min-h-[100px] text-sm"
+                                        placeholder="Краткое описание проекта..."
+                                        value={newProject.description}
+                                        onChange={e => setNewProject({ ...newProject, description: e.target.value })}
+                                    />
+                                </div>
                             </div>
-                            <div className="md:col-span-2 space-y-1">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Описание</label>
-                                <textarea
-                                    className="w-full px-4 py-2.5 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all outline-none min-h-[80px] sm:min-h-[100px] text-sm"
-                                    placeholder="Краткое описание проекта..."
-                                    value={newProject.description}
-                                    onChange={e => setNewProject({ ...newProject, description: e.target.value })}
-                                />
+                            <div className="flex justify-end pt-2">
+                                <button type="submit" className={`w-full sm:w-auto px-8 py-3 text-white rounded-xl font-bold shadow-md transition-all active:scale-[0.98] ${editingProjectId ? 'bg-orange-500 hover:bg-orange-600' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
+                                    {editingProjectId ? 'Сохранить изменения' : 'Создать проект'}
+                                </button>
                             </div>
-                        </div>
-                        <div className="flex justify-end pt-2">
-                            <button type="submit" className={`w-full sm:w-auto px-8 py-3 text-white rounded-xl font-bold shadow-md transition-all active:scale-[0.98] ${editingProjectId ? 'bg-orange-500 hover:bg-orange-600' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
-                                {editingProjectId ? 'Сохранить изменения' : 'Создать проект'}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            )}
+                        </form>
+                    </div>
+                )
+            }
 
             <div className="grid grid-cols-1 gap-6">
                 {projects.map(project => (
@@ -665,7 +650,7 @@ const EstimatorDashboard = () => {
                         {expandedProjects[project.id] && (
                             <div className="p-5 bg-slate-50/50 space-y-4">
                                 <div className="flex justify-between items-center mb-2 px-1">
-                                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Объекты стоительства</h3>
+                                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Разделы</h3>
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -681,7 +666,7 @@ const EstimatorDashboard = () => {
                                         }}
                                         className="text-xs px-3 py-1.5 bg-white border border-slate-200 text-indigo-600 font-semibold rounded-lg hover:border-indigo-200 hover:shadow-sm transition-all"
                                     >
-                                        + Добавить объект
+                                        + Добавить раздел
                                     </button>
                                 </div>
 
@@ -691,7 +676,7 @@ const EstimatorDashboard = () => {
                                         <div className="flex flex-col gap-3">
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                 <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Название объекта</label>
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Название раздела</label>
                                                     <input
                                                         className="w-full border-slate-200 px-3 py-2 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500"
                                                         placeholder="Напр: Квартира 42"
@@ -712,7 +697,7 @@ const EstimatorDashboard = () => {
                                             </div>
                                             <div className="flex gap-2 pt-1">
                                                 <button type="submit" className={`flex-1 text-white py-2.5 rounded-lg text-sm font-bold transition-colors ${editingObjectId ? 'bg-orange-500 hover:bg-orange-600' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
-                                                    {editingObjectId ? 'Сохранить изменения' : 'Создать объект'}
+                                                    {editingObjectId ? 'Сохранить изменения' : 'Создать раздел'}
                                                 </button>
                                                 <button type="button" onClick={() => { setShowObjectForm(null); setEditingObjectId(null); setNewObject({ name: '', address: '' }); }} className="px-4 bg-slate-100 text-slate-600 py-2.5 rounded-lg text-sm font-bold">Отмена</button>
                                             </div>
@@ -722,7 +707,7 @@ const EstimatorDashboard = () => {
 
                                 {projectObjects[project.id]?.length === 0 && (
                                     <div className="text-center py-8 text-slate-400 bg-white rounded-xl border border-dashed border-slate-200">
-                                        Нет объектов. Создайте первый!
+                                        Нет разделов. Создайте первый!
                                     </div>
                                 )}
 
@@ -756,7 +741,7 @@ const EstimatorDashboard = () => {
                                             {expandedObjects[object.id] && (
                                                 <div className="border-t border-slate-100 bg-slate-50/30 p-4">
                                                     <div className="flex justify-between items-center mb-3">
-                                                        <span className="text-xs font-bold text-slate-400 uppercase">Локации / Подобъекты</span>
+                                                        <span className="text-xs font-bold text-slate-400 uppercase">Подразделы</span>
                                                         <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
@@ -1085,84 +1070,110 @@ const EstimatorDashboard = () => {
             </div>
 
             {/* Assignment Modal */}
-            {showAssignmentModal && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-zoomIn">
-                        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-indigo-50/30">
-                            <div>
-                                <h3 className="text-lg font-bold text-slate-800">
-                                    {showAssignmentModal.type === 'PROJECT' ? 'Управление командой проекта' : 'Назначение рабочих'}
-                                </h3>
-                                <p className="text-xs text-slate-500 font-medium truncate max-w-[280px]">{showAssignmentModal.name}</p>
+            {
+                showAssignmentModal && (
+                    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-zoomIn">
+                            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-indigo-50/30">
+                                <div>
+                                    <h3 className="text-lg font-bold text-slate-800">
+                                        {showAssignmentModal.type === 'PROJECT' ? 'Управление командой проекта' : 'Назначение рабочих'}
+                                    </h3>
+                                    <p className="text-xs text-slate-500 font-medium truncate max-w-[280px]">{showAssignmentModal.name}</p>
+                                </div>
+                                <button onClick={() => setShowAssignmentModal(null)} className="p-2 hover:bg-white rounded-full transition-colors text-slate-400">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l18 18"></path></svg>
+                                </button>
                             </div>
-                            <button onClick={() => setShowAssignmentModal(null)} className="p-2 hover:bg-white rounded-full transition-colors text-slate-400">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l18 18"></path></svg>
-                            </button>
-                        </div>
 
-                        <div className="p-6 space-y-6">
-                            {/* Assigned Staff List */}
-                            <div className="space-y-3">
-                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Текущий состав</h4>
-                                {assignmentLoading ? (
-                                    <div className="text-center py-4 text-slate-400 text-sm">Загрузка...</div>
-                                ) : assignedStaff.length > 0 ? (
-                                    <div className="space-y-2">
-                                        {assignedStaff.map(s => (
-                                            <div key={`${s.id}-${s.isPM ? 'pm' : s.isForeman ? 'foreman' : 'worker'}`} className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${s.isPM ? 'bg-amber-100 text-amber-600' :
-                                                        s.isForeman ? 'bg-indigo-100 text-indigo-600' :
-                                                            'bg-emerald-100 text-emerald-600'
-                                                        }`}>
-                                                        {s.fullName.substring(0, 1)}
+                            <div className="p-6 space-y-6">
+                                {/* Assigned Staff List */}
+                                <div className="space-y-3">
+                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Текущий состав</h4>
+                                    {assignmentLoading ? (
+                                        <div className="text-center py-4 text-slate-400 text-sm">Загрузка...</div>
+                                    ) : assignedStaff.length > 0 ? (
+                                        <div className="space-y-2">
+                                            {assignedStaff.map(s => (
+                                                <div key={`${s.id}-${s.isPM ? 'pm' : s.isForeman ? 'foreman' : 'worker'}`} className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${s.isPM ? 'bg-amber-100 text-amber-600' :
+                                                            s.isForeman ? 'bg-indigo-100 text-indigo-600' :
+                                                                'bg-emerald-100 text-emerald-600'
+                                                            }`}>
+                                                            {s.fullName.substring(0, 1)}
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-bold text-slate-700">{s.fullName}</p>
+                                                            <p className="text-[10px] uppercase font-bold text-slate-400">
+                                                                {s.isPM ? 'Project Manager' : s.isForeman ? 'Foreman' : 'Worker'}
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <p className="text-sm font-bold text-slate-700">{s.fullName}</p>
-                                                        <p className="text-[10px] uppercase font-bold text-slate-400">
-                                                            {s.isPM ? 'Project Manager' : s.isForeman ? 'Foreman' : 'Worker'}
-                                                        </p>
-                                                    </div>
+                                                    {!s.isPM && (
+                                                        <button
+                                                            onClick={() => showAssignmentModal.type === 'PROJECT' ? handleRemoveForeman(showAssignmentModal.id, s.id) : handleRemoveWorker(showAssignmentModal.id, s.id)}
+                                                            className="p-1.5 text-slate-300 hover:text-red-500 transition-colors"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                        </button>
+                                                    )}
                                                 </div>
-                                                {!s.isPM && (
-                                                    <button
-                                                        onClick={() => showAssignmentModal.type === 'PROJECT' ? handleRemoveForeman(showAssignmentModal.id, s.id) : handleRemoveWorker(showAssignmentModal.id, s.id)}
-                                                        className="p-1.5 text-slate-300 hover:text-red-500 transition-colors"
-                                                    >
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                                    </button>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-slate-400 text-xs italic">
-                                        Никто не назначен
-                                    </div>
-                                )}
-                            </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-slate-400 text-xs italic">
+                                            Никто не назначен
+                                        </div>
+                                    )}
+                                </div>
 
-                            {/* Add New Section */}
-                            <div className="space-y-3 pt-4 border-t border-slate-100">
-                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Добавить</h4>
-                                {showAssignmentModal.type === 'PROJECT' ? (
-                                    <div className="space-y-4">
+                                {/* Add New Section */}
+                                <div className="space-y-3 pt-4 border-t border-slate-100">
+                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Добавить</h4>
+                                    {showAssignmentModal.type === 'PROJECT' ? (
+                                        <div className="space-y-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-bold text-slate-500 uppercase ml-1">Добавить Foremen</label>
+                                                <div className="flex gap-2">
+                                                    <select
+                                                        id="foreman-select"
+                                                        className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-400"
+                                                    >
+                                                        <option value="">Выберите прораба...</option>
+                                                        {users.filter(u => u.role === 'FOREMAN').map(u => (
+                                                            <option key={u.id} value={u.id}>{u.fullName}</option>
+                                                        ))}
+                                                    </select>
+                                                    <button
+                                                        onClick={() => {
+                                                            const id = document.getElementById('foreman-select').value;
+                                                            if (id) handleAddForeman(showAssignmentModal.id, id);
+                                                        }}
+                                                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-sm font-bold shadow-sm"
+                                                    >
+                                                        +
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
                                         <div className="space-y-1">
-                                            <label className="text-[10px] font-bold text-slate-500 uppercase ml-1">Добавить Foremen</label>
+                                            <label className="text-[10px] font-bold text-slate-500 uppercase ml-1">Добавить рабочего</label>
                                             <div className="flex gap-2">
                                                 <select
-                                                    id="foreman-select"
+                                                    id="worker-select"
                                                     className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-400"
                                                 >
-                                                    <option value="">Выберите прораба...</option>
-                                                    {users.filter(u => u.role === 'FOREMAN').map(u => (
+                                                    <option value="">Выберите рабочего...</option>
+                                                    {users.filter(u => u.role === 'WORKER').map(u => (
                                                         <option key={u.id} value={u.id}>{u.fullName}</option>
                                                     ))}
                                                 </select>
                                                 <button
                                                     onClick={() => {
-                                                        const id = document.getElementById('foreman-select').value;
-                                                        if (id) handleAddForeman(showAssignmentModal.id, id);
+                                                        const id = document.getElementById('worker-select').value;
+                                                        if (id) handleAddWorker(showAssignmentModal.id, id);
                                                     }}
                                                     className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-sm font-bold shadow-sm"
                                                 >
@@ -1170,44 +1181,20 @@ const EstimatorDashboard = () => {
                                                 </button>
                                             </div>
                                         </div>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-bold text-slate-500 uppercase ml-1">Добавить рабочего</label>
-                                        <div className="flex gap-2">
-                                            <select
-                                                id="worker-select"
-                                                className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-400"
-                                            >
-                                                <option value="">Выберите рабочего...</option>
-                                                {users.filter(u => u.role === 'WORKER').map(u => (
-                                                    <option key={u.id} value={u.id}>{u.fullName}</option>
-                                                ))}
-                                            </select>
-                                            <button
-                                                onClick={() => {
-                                                    const id = document.getElementById('worker-select').value;
-                                                    if (id) handleAddWorker(showAssignmentModal.id, id);
-                                                }}
-                                                className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-sm font-bold shadow-sm"
-                                            >
-                                                +
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="p-4 bg-slate-50 flex justify-end">
+                                <button onClick={() => setShowAssignmentModal(null)} className="px-6 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-sm shadow-sm hover:bg-slate-50 transition-colors">
+                                    Закрыть
+                                </button>
                             </div>
                         </div>
-
-                        <div className="p-4 bg-slate-50 flex justify-end">
-                            <button onClick={() => setShowAssignmentModal(null)} className="px-6 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-sm shadow-sm hover:bg-slate-50 transition-colors">
-                                Закрыть
-                            </button>
-                        </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 

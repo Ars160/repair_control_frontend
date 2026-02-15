@@ -39,14 +39,29 @@ const Header = () => {
                             <img className="h-14 w-auto" src="/logo.png" alt="Bauberg" />
                         </Link>
 
-                        {/* Desktop Navigation - Managers Only */}
-                        {isManager && (
-                            <div className="hidden md:ml-10 md:flex md:items-center md:space-x-4">
-                                <NavItem to="/dashboard" label="Обзор" />
-                                <NavItem to="/analytics" label="Аналитика" />
-                                <NavItem to="/drafts" label="Черновики" />
-                            </div>
-                        )}
+                        {/* Desktop Navigation */}
+                        <div className="hidden md:ml-10 md:flex md:items-center md:space-x-4">
+                            {/* Common Links */}
+                            <NavItem to="/dashboard" label="Обзор" />
+
+                            {/* Manager Only Links */}
+                            {isManager && (
+                                <>
+                                    <div className="h-6 w-px bg-slate-300 mx-2"></div>
+                                    <NavItem to="/analytics" label="Аналитика" />
+                                    <NavItem to="/drafts" label="Черновики" />
+                                </>
+                            )}
+
+                            {/* Estimator Only Links */}
+                            {user?.role === 'ESTIMATOR' && (
+                                <>
+                                    <div className="h-6 w-px bg-slate-300 mx-2"></div>
+                                    <NavItem to="/templates/works" label="Виды работ" />
+                                    <NavItem to="/templates/checklists" label="Чеклисты" />
+                                </>
+                            )}
+                        </div>
                     </div>
 
                     {/* Right Side: User Profile & Mobile Toggle */}
@@ -71,7 +86,7 @@ const Header = () => {
                         </div>
 
                         {/* Mobile: Worker View (Simple Profile, No Menu) */}
-                        {!isManager && (
+                        {(!isManager && user?.role !== 'ESTIMATOR') && (
                             <div className="md:hidden flex items-center gap-3">
                                 <div className="h-8 w-8 rounded-full bg-blue-700 flex items-center justify-center text-white font-bold shadow-sm text-sm">
                                     {user?.fullName?.charAt(0)}
@@ -85,8 +100,8 @@ const Header = () => {
                             </div>
                         )}
 
-                        {/* Mobile: Manager View (Hamburger Menu) */}
-                        {isManager && (
+                        {/* Mobile: Hamburger Menu (Managers & Estimators) */}
+                        {(isManager || user?.role === 'ESTIMATOR') && (
                             <div className="flex items-center md:hidden ml-1 border-l border-slate-200 pl-2">
                                 <button
                                     onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -120,15 +135,31 @@ const Header = () => {
                 </div>
             </div>
 
-            {/* Mobile Menu - Managers Only */}
-            {isManager && (
+            {/* Mobile Menu */}
+            {(isManager || user?.role === 'ESTIMATOR') && (
                 <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden bg-white border-b border-slate-200 shadow-lg absolute w-full top-16 left-0 z-50 flex flex-col`}>
 
                     {/* Navigation Links */}
                     <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
                         <NavItem to="/dashboard" label="Обзор" mobile={true} />
-                        <NavItem to="/analytics" label="Аналитика" mobile={true} />
-                        <NavItem to="/drafts" label="Черновики" mobile={true} />
+
+                        {isManager && (
+                            <>
+                                <div className="h-px bg-slate-100 my-2 mx-4"></div>
+                                <p className="px-4 text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Управление</p>
+                                <NavItem to="/analytics" label="Аналитика" mobile={true} />
+                                <NavItem to="/drafts" label="Черновики" mobile={true} />
+                            </>
+                        )}
+
+                        {user?.role === 'ESTIMATOR' && (
+                            <>
+                                <div className="h-px bg-slate-100 my-2 mx-4"></div>
+                                <p className="px-4 text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Шаблоны</p>
+                                <NavItem to="/templates/works" label="Виды работ" mobile={true} />
+                                <NavItem to="/templates/checklists" label="Чеклисты" mobile={true} />
+                            </>
+                        )}
                     </div>
 
                     {/* Profile Section (At Bottom) */}

@@ -12,6 +12,8 @@ import Analytics from './pages/Analytics';
 import ProjectDetails from './pages/ProjectDetails';
 import NotificationBell from './components/NotificationBell';
 import DraftProjects from './pages/DraftProjects';
+import WorkTemplates from './pages/WorkTemplates';
+import ChecklistTemplates from './pages/ChecklistTemplates';
 
 // A wrapper for routes that require a logged-in user.
 // Redirects to the login page if the user is not authenticated.
@@ -55,6 +57,11 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/drafts" element={<DraftProjects />} />
+
+        {/* Templates Routes */}
+        <Route path="/templates/works" element={<WorkTemplates />} />
+        <Route path="/templates/checklists" element={<ChecklistTemplates />} />
+
         <Route path="/project/:id" element={<ProjectDetails />} />
         <Route path="/tasks/:id" element={<TaskDetail />} />
         <Route path="/review/:id" element={<ReviewTask />} />
