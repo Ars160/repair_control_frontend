@@ -24,53 +24,16 @@ function ProtectedRoute() {
 }
 
 // A simple layout component with a header.
-import { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
+import Header from './components/Header';
 
 function Layout() {
   const { user } = useAuth();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile state
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
-    // Persist collapsed state
-    const saved = localStorage.getItem('sidebar-collapsed');
-    return saved === 'true';
-  });
-
-  const toggleSidebarCollapse = () => {
-    setIsSidebarCollapsed(!isSidebarCollapsed);
-    localStorage.setItem('sidebar-collapsed', !isSidebarCollapsed);
-  };
 
   return (
     <div className="min-h-screen bg-slate-50/50">
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        isCollapsed={isSidebarCollapsed}
-        toggleCollapse={toggleSidebarCollapse}
-      />
+      <Header />
 
-      {/* Mobile Header (visible only on small screens) */}
-      <header className="md:hidden bg-white/90 backdrop-blur-md sticky top-0 z-30 border-b border-slate-200 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setIsSidebarOpen(true)}
-            className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-          </button>
-          <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Bauberg" className="w-8 h-8 object-contain" />
-            <span className="font-bold text-slate-900 text-lg tracking-tight">Bauberg</span>
-          </div>
-        </div>
-      </header>
-
-      <main
-        className={`transition-all duration-300 p-4 sm:p-6 lg:p-8
-            ${isSidebarCollapsed ? 'md:pl-20' : 'md:pl-72'}
-        `}
-      >
+      <main className="p-4 sm:p-6 lg:p-8 transition-all duration-300">
         <div className="max-w-7xl mx-auto">
           <Outlet />
         </div>
