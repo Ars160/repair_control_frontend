@@ -54,7 +54,6 @@ const EstimatorDashboard = () => {
     const loadProjects = async () => {
         setLoading(true);
         const data = await api.getProjects();
-        console.log(data);
 
         setProjects(data);
         setLoading(false);

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import NotificationBell from './NotificationBell';
 
 const Header = () => {
     const { user, logout } = useAuth();
@@ -50,6 +51,7 @@ const Header = () => {
                                     <div className="h-6 w-px bg-slate-300 mx-2"></div>
                                     <NavItem to="/analytics" label="Аналитика" />
                                     <NavItem to="/drafts" label="Черновики" />
+                                    <NavItem to="/users" label="Сотрудники" />
                                 </>
                             )}
 
@@ -66,9 +68,10 @@ const Header = () => {
 
                     {/* Right Side: User Profile & Mobile Toggle */}
                     <div className="flex items-center gap-3">
+                        <NotificationBell />
 
                         {/* User Profile (Desktop) */}
-                        <div className="hidden md:flex items-center gap-3 pl-4 border-l border-slate-200">
+                        <Link to="/profile" className="hidden md:flex items-center gap-3 pl-4 border-l border-slate-200 hover:bg-slate-50 rounded-lg transition-colors p-2">
                             <div className="text-right">
                                 <div className="text-sm font-bold text-slate-900">{user?.fullName}</div>
                                 <div className="text-[10px] font-medium text-slate-500 uppercase">{user?.role}</div>
@@ -76,21 +79,21 @@ const Header = () => {
                             <div className="h-8 w-8 rounded-full bg-blue-700 flex items-center justify-center text-white font-bold shadow-sm">
                                 {user?.fullName?.charAt(0)}
                             </div>
-                            <button
-                                onClick={logout}
-                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors ml-1"
-                                title="Выйти"
-                            >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                            </button>
-                        </div>
+                        </Link>
+                        <button
+                            onClick={logout}
+                            className="hidden md:block p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors ml-1"
+                            title="Выйти"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        </button>
 
                         {/* Mobile: Worker View (Simple Profile, No Menu) */}
                         {(!isManager && user?.role !== 'ESTIMATOR') && (
                             <div className="md:hidden flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-full bg-blue-700 flex items-center justify-center text-white font-bold shadow-sm text-sm">
+                                <Link to="/profile" className="h-8 w-8 rounded-full bg-blue-700 flex items-center justify-center text-white font-bold shadow-sm text-sm">
                                     {user?.fullName?.charAt(0)}
-                                </div>
+                                </Link>
                                 <button
                                     onClick={logout}
                                     className="p-1.5 text-slate-400 hover:text-rose-600 focus:outline-none"
@@ -149,6 +152,7 @@ const Header = () => {
                                 <p className="px-4 text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Управление</p>
                                 <NavItem to="/analytics" label="Аналитика" mobile={true} />
                                 <NavItem to="/drafts" label="Черновики" mobile={true} />
+                                <NavItem to="/users" label="Сотрудники" mobile={true} />
                             </>
                         )}
 
@@ -165,7 +169,7 @@ const Header = () => {
                     {/* Profile Section (At Bottom) */}
                     <div className="bg-slate-50 border-t border-slate-100 px-4 py-4 mt-auto">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
+                            <Link to="/profile" className="flex items-center gap-3" onClick={() => setIsMobileMenuOpen(false)}>
                                 <div className="h-10 w-10 min-w-[2.5rem] rounded-full bg-blue-700 flex items-center justify-center text-white font-bold text-lg shadow-sm">
                                     {user?.fullName?.charAt(0)}
                                 </div>
@@ -173,7 +177,7 @@ const Header = () => {
                                     <div className="text-base font-bold text-slate-800 leading-none">{user?.fullName}</div>
                                     <div className="text-xs font-medium text-slate-500 mt-1 uppercase tracking-wide">{user?.role}</div>
                                 </div>
-                            </div>
+                            </Link>
                             <button
                                 onClick={logout}
                                 className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-colors bg-white shadow-sm border border-slate-200"

@@ -40,7 +40,7 @@ const Register = () => {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
         <h1 className="text-3xl font-bold text-center text-gray-800">Регистрация</h1>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Email</label>
@@ -88,7 +88,7 @@ const Register = () => {
             >
               <option value="WORKER">Работник</option>
               <option value="FOREMAN">Прораб</option>
-              <option value="PM">Project Manager</option>
+              <option value="PM">Администратор</option>
               <option value="ESTIMATOR">Сметчик</option>
             </select>
           </div>

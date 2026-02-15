@@ -37,13 +37,7 @@ const DraftProjects = () => {
                     <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Управление черновиками</h1>
                     <p className="text-sm text-slate-500 mt-1">Проекты на стадии подготовки. Не видны рабочим.</p>
                 </div>
-                <button
-                    onClick={() => navigate(-1)}
-                    className="px-4 py-2 text-slate-500 hover:text-slate-800 font-semibold flex items-center gap-2 transition-colors"
-                >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                    Назад
-                </button>
+
             </div>
 
             {drafts.length === 0 ? (
