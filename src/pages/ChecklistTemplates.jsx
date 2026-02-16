@@ -20,27 +20,35 @@ const SortableItem = ({ id, item, idx, onRemove }) => {
     };
 
     return (
-        <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100 touch-none group">
-            {/* Drag Handle Icon */}
-            <div className="cursor-grab text-slate-300 hover:text-indigo-600 transition-colors">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" /></svg>
+        <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="flex flex-col gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100 touch-none group">
+            <div className="flex items-center gap-3">
+                {/* Drag Handle Icon */}
+                <div className="cursor-grab text-slate-300 hover:text-indigo-600 transition-colors">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" /></svg>
+                </div>
+
+                <span className="text-xs font-bold text-slate-400 w-5 text-center">#{idx + 1}</span>
+                <span className="flex-1 text-sm font-medium text-slate-700">{item.description}</span>
+
+                {item.isPhotoRequired && (
+                    <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-1 rounded-lg font-bold">ФОТО</span>
+                )}
+
+                <button
+                    onClick={(e) => { e.stopPropagation(); onRemove(idx); }}
+                    className="text-slate-400 hover:text-red-500 ml-2 p-1"
+                    onPointerDown={e => e.stopPropagation()} // Prevent drag start on delete button
+                    onMouseDown={e => e.stopPropagation()}
+                >
+                    ×
+                </button>
             </div>
-
-            <span className="text-xs font-bold text-slate-400 w-5 text-center">#{idx + 1}</span>
-            <span className="flex-1 text-sm font-medium text-slate-700">{item.description}</span>
-
-            {item.isPhotoRequired && (
-                <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-1 rounded-lg font-bold">ФОТО</span>
+            {item.methodology && (
+                <div className="ml-10 text-xs text-slate-500 bg-white p-2 rounded border border-slate-100">
+                    <span className="font-bold text-slate-400 uppercase text-[9px] mr-1">Методика:</span>
+                    {item.methodology}
+                </div>
             )}
-
-            <button
-                onClick={(e) => { e.stopPropagation(); onRemove(idx); }}
-                className="text-slate-400 hover:text-red-500 ml-2 p-1"
-                onPointerDown={e => e.stopPropagation()} // Prevent drag start on delete button
-                onMouseDown={e => e.stopPropagation()}
-            >
-                ×
-            </button>
         </div>
     );
 };
@@ -51,6 +59,7 @@ const ChecklistTemplates = () => {
     const [showCreate, setShowCreate] = useState(false);
     const [newTemplate, setNewTemplate] = useState({ name: '', items: [] });
     const [newItemText, setNewItemText] = useState('');
+    const [newMethodology, setNewMethodology] = useState('');
     const [isPhotoRequired, setIsPhotoRequired] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -90,17 +99,33 @@ const ChecklistTemplates = () => {
         }
     };
 
+    const sanitizeTemplate = (tpl) => ({
+        ...tpl,
+        items: tpl.items.map(item => {
+            // Create a copy to avoid mutating state
+            const cleanItem = { ...item };
+            // If ID is a temp string, remove it (send null/undefined to backend)
+            if (typeof cleanItem.id === 'string' && cleanItem.id.startsWith('temp-')) {
+                delete cleanItem.id;
+            }
+            return cleanItem;
+        })
+    });
+
     const handleUpdateTemplate = async () => {
         if (!selectedTemplate) return;
 
         // 1. Try direct update
-        const res = await api.updateTemplate(selectedTemplate.id, newTemplate);
+        const res = await api.updateTemplate(selectedTemplate.id, sanitizeTemplate(newTemplate));
 
         if (res.success) {
             setTemplates(templates.map(t => t.id === selectedTemplate.id ? res.data : t));
             setSelectedTemplate(res.data);
             setIsEditing(false);
             setNewTemplate({ name: '', items: [] });
+            setNewItemText('');
+            setNewMethodology('');
+            setIsPhotoRequired(false);
         } else {
             // 2. If direct update fails (e.g. 405 Method Not Allowed, 403 Forbidden), try "Clone & Replace" approach
             console.warn("Direct update failed, attempting replace strategy...", res);
@@ -117,6 +142,7 @@ const ChecklistTemplates = () => {
                     name: originalName,
                     items: newTemplate.items.map((item, idx) => ({
                         description: String(item.description || ""),
+                        methodology: item.methodology ? String(item.methodology) : null,
                         isPhotoRequired: Boolean(item.isPhotoRequired),
                         orderIndex: Number(idx) // Force re-index sequence
                     }))
@@ -155,6 +181,9 @@ const ChecklistTemplates = () => {
                     }
                     setIsEditing(false);
                     setNewTemplate({ name: '', items: [] });
+                    setNewItemText('');
+                    setNewMethodology('');
+                    setIsPhotoRequired(false);
                 } else {
                     alert("Не удалось создать новую версию шаблона: " + createRes.message);
                 }
@@ -178,11 +207,13 @@ const ChecklistTemplates = () => {
             items: [...prev.items, {
                 id: `temp-${Math.random().toString(36).substr(2, 9)}`,
                 description: newItemText,
+                methodology: newMethodology,
                 isPhotoRequired: isPhotoRequired,
                 orderIndex: prev.items.length
             }]
         }));
         setNewItemText('');
+        setNewMethodology('');
         setIsPhotoRequired(false);
     };
 
@@ -200,12 +231,16 @@ const ChecklistTemplates = () => {
             return;
         }
 
-        const res = await api.createTemplate(newTemplate);
+        // Sanitize to remove temp IDs
+        const res = await api.createTemplate(sanitizeTemplate(newTemplate));
         if (res.success) {
             const created = res.data;
             setTemplates([...templates, created]);
             setShowCreate(false);
             setNewTemplate({ name: '', items: [] });
+            setNewItemText('');
+            setNewMethodology('');
+            setIsPhotoRequired(false);
             setSelectedTemplate(created);
         } else {
             alert(res.message);
@@ -354,7 +389,7 @@ const ChecklistTemplates = () => {
                                                 )}
                                             </div>
 
-                                            <div className="flex flex-col sm:flex-row gap-2">
+                                            <div className="flex flex-col gap-3 p-4 bg-slate-50 rounded-xl border border-slate-100">
                                                 <input
                                                     className="w-full border border-slate-200 bg-white rounded-xl text-sm px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 outline-none"
                                                     placeholder="Текст пункта..."
@@ -362,8 +397,15 @@ const ChecklistTemplates = () => {
                                                     onChange={e => setNewItemText(e.target.value)}
                                                     onKeyDown={e => e.key === 'Enter' && handleAddItem()}
                                                 />
-                                                <div className="flex gap-2">
-                                                    <div className="flex items-center bg-white px-3 rounded-xl border border-slate-200 flex-1 sm:flex-none justify-center sm:justify-start">
+                                                <textarea
+                                                    className="w-full border border-slate-200 bg-white rounded-xl text-xs px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
+                                                    placeholder="Методика выполнения (необязательно)..."
+                                                    rows={2}
+                                                    value={newMethodology}
+                                                    onChange={e => setNewMethodology(e.target.value)}
+                                                />
+                                                <div className="flex justify-between items-center">
+                                                    <div className="flex items-center bg-white px-3 py-1.5 rounded-xl border border-slate-200">
                                                         <input
                                                             type="checkbox"
                                                             id="photoReq"
@@ -371,14 +413,14 @@ const ChecklistTemplates = () => {
                                                             onChange={e => setIsPhotoRequired(e.target.checked)}
                                                             className="mr-2 text-indigo-600 focus:ring-indigo-500 rounded"
                                                         />
-                                                        <label htmlFor="photoReq" className="text-xs font-bold text-slate-600 cursor-pointer select-none">Фото</label>
+                                                        <label htmlFor="photoReq" className="text-xs font-bold text-slate-600 cursor-pointer select-none">Фото обязательно</label>
                                                     </div>
                                                     <button
                                                         onClick={handleAddItem}
                                                         disabled={!newItemText.trim()}
-                                                        className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-indigo-200"
+                                                        className="bg-indigo-600 text-white px-5 py-2 rounded-xl font-bold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-indigo-200 text-sm"
                                                     >
-                                                        +
+                                                        Добавить пункт
                                                     </button>
                                                 </div>
                                             </div>
@@ -429,17 +471,25 @@ const ChecklistTemplates = () => {
 
                                 <div className="space-y-3">
                                     {selectedTemplate.items?.map((item, idx) => (
-                                        <div key={idx} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-                                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xs">
-                                                {idx + 1}
+                                        <div key={idx} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-2">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xs shrink-0">
+                                                    {idx + 1}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="font-medium text-slate-800">{item.description}</p>
+                                                </div>
+                                                {item.isPhotoRequired && (
+                                                    <span className="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg font-bold border border-indigo-100">
+                                                        📷 Фото
+                                                    </span>
+                                                )}
                                             </div>
-                                            <div className="flex-1">
-                                                <p className="font-medium text-slate-800">{item.description}</p>
-                                            </div>
-                                            {item.isPhotoRequired && (
-                                                <span className="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg font-bold border border-indigo-100">
-                                                    📷 Фото
-                                                </span>
+                                            {item.methodology && (
+                                                <div className="ml-12 p-3 bg-slate-50 rounded-lg border border-slate-100 text-xs text-slate-600">
+                                                    <span className="font-bold text-slate-400 uppercase text-[10px] block mb-1">Методика:</span>
+                                                    {item.methodology}
+                                                </div>
                                             )}
                                         </div>
                                     ))}
