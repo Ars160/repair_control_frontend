@@ -270,7 +270,7 @@ const UserManagement = () => {
                                     onChange={handleInputChange}
                                     required
                                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="ivan@example.com"
+                                    placeholder="user@bauberg.ru"
                                 />
                             </div>
 

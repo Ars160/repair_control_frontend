@@ -123,7 +123,7 @@ const Login = () => {
                 <button
                   key={prefix}
                   type="button"
-                  onClick={() => fillCredentials(`${prefix}@example.com`)}
+                  onClick={() => fillCredentials(`${prefix}@bauberg.com`)}
                   className="px-3 py-2 text-xs font-semibold bg-slate-50 text-slate-600 rounded-lg hover:bg-slate-100 hover:text-blue-700 border border-transparent hover:border-blue-200 transition-all"
                 >
                   {label}
