@@ -170,7 +170,7 @@ const WorkTemplates = () => {
                                     <h3 className={`font-bold text-sm ${selectedTemplate?.id === tpl.id ? 'text-orange-700' : 'text-slate-700'}`}>{tpl.name}</h3>
                                     <button
                                         onClick={(e) => { e.stopPropagation(); handleDeleteTemplate(tpl.id); }}
-                                        className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-600 lg:group-hover:block"
+                                        className="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 p-1 text-slate-400 hover:text-red-600 transition-opacity"
                                     >
                                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -224,7 +224,7 @@ const WorkTemplates = () => {
                                                 <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800">{selectedTemplate.name}</h1>
                                                 <button
                                                     onClick={() => { setRenameValue(selectedTemplate.name); setIsRenaming(true); }}
-                                                    className="opacity-0 group-hover/title:opacity-100 p-1.5 text-slate-400 hover:text-indigo-600 transition-all font-normal"
+                                                    className="opacity-100 lg:opacity-0 lg:group-hover/title:opacity-100 p-1.5 text-slate-400 hover:text-indigo-600 transition-all font-normal"
                                                 >
                                                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                                 </button>
@@ -301,7 +301,7 @@ const WorkTemplates = () => {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="flex items-center opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                                                     <button
                                                         onClick={() => handleDeleteTaskTemplate(task.id)}
                                                         className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"

@@ -225,7 +225,6 @@ const ChecklistSection = ({ taskId, checklists, onUpdate, readOnly = false, canR
 
     useEffect(() => {
         if (checklists) {
-            console.log("Checklist items loaded:", checklists);
             setItems(checklists);
         }
     }, [checklists]);

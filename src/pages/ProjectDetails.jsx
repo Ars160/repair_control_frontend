@@ -284,10 +284,9 @@ const TaskCard = ({ task, isParallel = false }) => {
     const config = statusConfig[task.status] || statusConfig.default;
 
     // Get assignee info
-    const hasAssignees = task.assigneeIds && task.assigneeIds.length > 0;
-    const assigneeText = hasAssignees
-        ? `${task.assigneeIds.length} чел.`
-        : 'Не назначено';
+    const hasAssignees = (task.assigneeNames && task.assigneeNames.length > 0) || (task.assigneeIds && task.assigneeIds.length > 0);
+    const assigneeNames = task.assigneeNames || [];
+    const assigneeCount = assigneeNames.length || (task.assigneeIds ? task.assigneeIds.length : 0);
 
     return (
         <div
@@ -311,16 +310,36 @@ const TaskCard = ({ task, isParallel = false }) => {
                     {task.title}
                 </h5>
 
-                <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5">
-                        <div className={`w-2 h-2 rounded-full ${config.dot}`}></div>
-                        <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                        </svg>
-                        <span className={`text-xs font-medium ${hasAssignees ? 'text-slate-600' : 'text-rose-600'}`}>
-                            {assigneeText}
-                        </span>
-                    </div>
+                {/* Assignees section */}
+                <div className="flex items-center gap-1.5">
+                    <div className={`w-2 h-2 rounded-full ${config.dot}`}></div>
+                    {hasAssignees ? (
+                        <div className="flex items-center gap-1.5 min-w-0">
+                            <div className="flex -space-x-1.5 flex-shrink-0">
+                                {assigneeNames.slice(0, 3).map((name, i) => (
+                                    <div key={i} className="w-5 h-5 rounded-full bg-indigo-100 border border-white flex items-center justify-center" title={name}>
+                                        <span className="text-[8px] font-bold text-indigo-600">{name.charAt(0)}</span>
+                                    </div>
+                                ))}
+                                {assigneeCount > 3 && (
+                                    <div className="w-5 h-5 rounded-full bg-slate-200 border border-white flex items-center justify-center">
+                                        <span className="text-[8px] font-bold text-slate-500">+{assigneeCount - 3}</span>
+                                    </div>
+                                )}
+                            </div>
+                            <span className="text-xs text-slate-600 truncate" title={assigneeNames.join(', ')}>
+                                {assigneeNames.length <= 2
+                                    ? assigneeNames.join(', ')
+                                    : `${assigneeNames[0]} и ещё ${assigneeCount - 1}`
+                                }
+                            </span>
+                        </div>
+                    ) : (
+                        <span className="text-xs font-medium text-rose-500">Не назначено</span>
+                    )}
+                </div>
+
+                <div className="flex items-center justify-end">
                     <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase ${config.badge} ${config.text}`}>
                         {translateStatus(task.status)}
                     </span>

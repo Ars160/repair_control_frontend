@@ -66,7 +66,7 @@ const TaskDetail = () => {
     // Redirect Foreman to Review Page if task is under review
     // Redirect Foreman to Review Page if task is under review or returned by PM
     useEffect(() => {
-        if (task && user?.role === ROLES.FOREMAN && (task.status === STATUSES.UNDER_REVIEW_FOREMAN || task.status === STATUSES.REWORK_PM)) {
+        if (task && user?.role === ROLES.FOREMAN && task.status === STATUSES.UNDER_REVIEW_FOREMAN) {
             navigate(`/review/${id}`, { replace: true });
         }
     }, [task, user, id, navigate]);
@@ -114,9 +114,12 @@ const TaskDetail = () => {
 
     const isReworkStatus = [STATUSES.REWORK, STATUSES.REWORK_FOREMAN, STATUSES.REWORK_PM].includes(task?.status);
 
+    // Foreman is read-only during any rework (waits for worker to resubmit)
+    const isForemanWaiting = user?.role === ROLES.FOREMAN && (task?.status === STATUSES.REWORK_PM || task?.status === STATUSES.REWORK_FOREMAN);
+
     const isEditable = (
         (user?.role === ROLES.WORKER && (task?.status === STATUSES.ACTIVE || isReworkStatus)) ||
-        (user?.role === ROLES.FOREMAN && (task?.status === STATUSES.ACTIVE || isReworkStatus))
+        (user?.role === ROLES.FOREMAN && task?.status === STATUSES.ACTIVE)
     );
 
     if (loading) return <div className="text-center py-20">Загрузка задачи...</div>;
@@ -170,17 +173,28 @@ const TaskDetail = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                        <div className="flex items-start">
-                            <div className="flex-shrink-0 bg-slate-100 rounded-lg p-2 text-slate-500">
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2 mb-1">
+                                <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Расположение</p>
                             </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-slate-500">Локация</p>
-                                <p className="text-base font-semibold text-slate-800">{task.objectName}</p>
+                            <div className="ml-2 space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase w-20 flex-shrink-0">Раздел</span>
+                                    <span className="text-sm font-semibold text-slate-800">{task.objectName}</span>
+                                </div>
                                 {task.objectAddress && (
-                                    <p className="text-sm text-slate-500">{task.objectAddress}</p>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase w-20 flex-shrink-0">Адрес</span>
+                                        <span className="text-sm text-slate-600">{task.objectAddress}</span>
+                                    </div>
                                 )}
-                                <p className="text-sm text-indigo-600 mt-1">{task.subObjectName}</p>
+                                {task.subObjectName && (
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-bold text-indigo-400 uppercase w-20 flex-shrink-0">Подраздел</span>
+                                        <span className="text-sm font-semibold text-indigo-600">{task.subObjectName}</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -201,6 +215,28 @@ const TaskDetail = () => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Assignees Section */}
+                    {task.assigneeNames && task.assigneeNames.length > 0 && (
+                        <div className="mt-6 pt-5 border-t border-slate-100">
+                            <div className="flex items-center gap-2 mb-3">
+                                <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Исполнители</p>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {task.assigneeNames.map((name, i) => (
+                                    <div key={i} className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-full pl-1 pr-3 py-1">
+                                        <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                                            <span className="text-xs font-bold text-indigo-600">{name.charAt(0)}</span>
+                                        </div>
+                                        <span className="text-sm font-medium text-slate-700">{name}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -218,7 +254,9 @@ const TaskDetail = () => {
                                 Требуется доработка!
                             </h3>
                             <p className="text-sm text-red-700 font-medium mb-3 leading-relaxed">
-                                Прораб вернул задачу. Пожалуйста, исправьте замечания ниже и отправьте отчет повторно.
+                                {task.status === STATUSES.REWORK_PM
+                                    ? 'Менеджер (ПМ) вернул задачу на доработку. Пожалуйста, исправьте замечания и отправьте отчет повторно.'
+                                    : 'Прораб вернул задачу. Пожалуйста, исправьте замечания ниже и отправьте отчет повторно.'}
                             </p>
 
                             {(task.rejectionReason || task.foremanNote) && (
@@ -236,6 +274,41 @@ const TaskDetail = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                                 </svg>
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Foreman Info Banner - Rework: Read-only, waiting for worker */}
+            {isForemanWaiting && (
+                <div className="bg-amber-50 border-l-4 border-amber-400 p-6 rounded-r-xl shadow-sm mb-6">
+                    <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0 bg-amber-100 p-2 rounded-full">
+                            <svg className="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-lg font-bold text-amber-800 uppercase tracking-tight mb-1">
+                                Ожидание доработки работником
+                            </h3>
+                            <p className="text-sm text-amber-700 font-medium mb-3 leading-relaxed">
+                                {task.status === STATUSES.REWORK_PM
+                                    ? 'ПМ вернул задачу на доработку. Работник должен исправить замечания и отправить отчёт повторно. После этого задача снова придёт к вам на проверку.'
+                                    : 'Задача отправлена работнику на доработку. Ожидайте повторного отчёта от работника.'}
+                            </p>
+
+                            {(task.rejectionReason || task.foremanNote) && (
+                                <div className="bg-white/70 rounded-lg p-3 border border-amber-200">
+                                    <p className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">
+                                        {task.status === STATUSES.REWORK_PM ? 'Причина возврата от ПМ:' : 'Комментарий при возврате:'}
+                                    </p>
+                                    <p className="text-sm text-amber-900 italic">
+                                        "{task.rejectionReason || task.foremanNote}"
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -318,8 +391,8 @@ const TaskDetail = () => {
                     />
                 </div>
 
-                {/* Final Submission Section */}
-                {(isEditable || task.finalPhotoUrl) && (
+                {/* Final Submission Section - Only for non-workers (Foremen etc.) */}
+                {!isMqWorker && (isEditable || task.finalPhotoUrl) && (
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6">
                         <h2 className="text-lg sm:text-xl font-bold text-slate-800 mb-4">Финальный результат</h2>
 
@@ -337,29 +410,12 @@ const TaskDetail = () => {
                                             </span>
                                         )}
                                     </h3>
-
-                                    {isMqWorker ? (
-                                        <div className="bg-indigo-50 rounded-2xl p-6 border border-indigo-100 flex items-start gap-4">
-                                            <div className="p-3 bg-white rounded-xl shadow-sm text-indigo-600">
-                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <h4 className="text-sm font-bold text-indigo-900 mb-1">Фото результата не требуется</h4>
-                                                <p className="text-sm text-indigo-700 leading-relaxed">
-                                                    Прораб самостоятельно сделает и загрузит фото при проверке вашей работы.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <PhotoUpload
-                                            currentPhoto={task.finalPhotoUrl}
-                                            onPhotoChange={handleFinalPhotoChange}
-                                            disabled={!isChecklistComplete || loading}
-                                            label={isChecklistComplete ? "Загрузите финальное фото" : "Доступно после выполнения всех пунктов чек-листа"}
-                                        />
-                                    )}
+                                    <PhotoUpload
+                                        currentPhoto={task.finalPhotoUrl}
+                                        onPhotoChange={handleFinalPhotoChange}
+                                        disabled={!isChecklistComplete || loading}
+                                        label={isChecklistComplete ? "Загрузите финальное фото" : "Доступно после выполнения всех пунктов чек-листа"}
+                                    />
                                 </div>
                             ) : (
                                 task.finalPhotoUrl && (
@@ -427,6 +483,69 @@ const TaskDetail = () => {
                         </div>
                     </div>
                 )}
+
+                {/* Final Photo Display - visible to everyone when photo exists */}
+                {isMqWorker && !isEditable && task.finalPhotoUrl && (
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6">
+                        <h2 className="text-lg sm:text-xl font-bold text-slate-800 mb-4">Фото результата</h2>
+                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                            <img
+                                src={task.finalPhotoUrl}
+                                alt="Финальное фото"
+                                className="w-full h-48 sm:h-64 object-cover rounded-xl shadow-sm"
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {/* Worker Submit Section - Simple form without photo */}
+                {isMqWorker && isEditable && (
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6">
+                        <form onSubmit={handleSubmit} className="space-y-5">
+                            <div>
+                                <label htmlFor="comment" className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest pl-1">
+                                    Ваш комментарий (опционально)
+                                </label>
+                                <textarea
+                                    id="comment"
+                                    rows="3"
+                                    value={comment}
+                                    onChange={(e) => setComment(e.target.value)}
+                                    placeholder="Опишите особенности выполнения работы..."
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all outline-none text-sm"
+                                ></textarea>
+                            </div>
+
+                            {!isReadyToSubmit && (
+                                <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl">
+                                    <p className="text-xs text-amber-700 font-bold flex items-center gap-2">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        Выполните все пункты чек-листа ({incompleteChecklist.length} ост.)
+                                    </p>
+                                </div>
+                            )}
+
+                            <button
+                                type="submit"
+                                disabled={isSubmitting || !isReadyToSubmit}
+                                className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold text-base sm:text-lg hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-100 active:scale-[0.98]"
+                            >
+                                {isSubmitting ? (
+                                    <span className="flex items-center justify-center gap-2">
+                                        <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Отправка отчета...
+                                    </span>
+                                ) : 'Отправить отчет на проверку'}
+                            </button>
+                        </form>
+                    </div>
+                )}
+
             </div>
 
             {/* Display previous submission if not editable */}

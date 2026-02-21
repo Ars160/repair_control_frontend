@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = '';
+const API_URL = 'http://localhost:8080';
 
 // Create axios instance
 const api = axios.create({
@@ -29,9 +29,9 @@ const resolvePhotoUrl = (path) => {
 
 export const apiClient = {
     // Login with email and password
-    login: async (email, password) => {
+    login: async (phone, password) => {
         try {
-            const response = await api.post('/auth/login', { email, password });
+            const response = await api.post('/auth/login', { phone, password });
             const token = response.data.token;
             localStorage.setItem('token', token);
 
@@ -373,6 +373,26 @@ export const apiClient = {
         }
     },
 
+    updateUser: async (id, data) => {
+        try {
+            const response = await api.put(`/api/users/${id}`, data);
+            return { success: true, data: response.data };
+        } catch (error) {
+            console.error("Update user error", error);
+            return { success: false, message: error.response?.data?.message || 'Failed to update user' };
+        }
+    },
+
+    deleteUser: async (id) => {
+        try {
+            await api.delete(`/api/users/${id}`);
+            return { success: true };
+        } catch (error) {
+            console.error("Delete user error", error);
+            return { success: false, message: error.response?.data?.message || 'Failed to delete user' };
+        }
+    },
+
     // Checklist APIs
     getChecklistsByTask: async (taskId) => {
         try {
@@ -384,12 +404,13 @@ export const apiClient = {
         }
     },
 
-    createChecklistItem: async (taskId, description, orderIndex, isPhotoRequired = false) => {
+    createChecklistItem: async (taskId, description, orderIndex, isPhotoRequired = false, methodology = null) => {
         try {
             const response = await api.post(`/api/checklist/task/${taskId}`, {
                 description,
                 orderIndex,
-                isPhotoRequired
+                isPhotoRequired,
+                methodology
             });
             return { success: true, data: response.data };
         } catch (error) {

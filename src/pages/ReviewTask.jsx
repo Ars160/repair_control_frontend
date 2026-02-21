@@ -39,7 +39,7 @@ const ReviewTask = () => {
                 const fetchedTask = await api.getTaskById(id);
                 if (fetchedTask) {
                     // Ensure the user is authorized to review this task
-                    if ((user.role === ROLES.FOREMAN && fetchedTask.status !== STATUSES.UNDER_REVIEW_FOREMAN && fetchedTask.status !== STATUSES.REWORK_PM) ||
+                    if ((user.role === ROLES.FOREMAN && fetchedTask.status !== STATUSES.UNDER_REVIEW_FOREMAN) ||
                         (user.role === ROLES.PM && fetchedTask.status !== STATUSES.UNDER_REVIEW_PM)) {
                         setError('У вас нет прав на просмотр этой задачи на данном этапе.');
                     } else {
@@ -59,10 +59,28 @@ const ReviewTask = () => {
     }, [id, user.role]);
 
     const handleApprove = async () => {
+        // Foreman must have all required photos before approving
+        if (user.role === ROLES.FOREMAN) {
+            // Check checklist photos
+            const missingPhotos = (task.checklist || []).filter(
+                item => item.isPhotoRequired && !item.photoUrl
+            );
+            if (missingPhotos.length > 0) {
+                alert(`Невозможно принять работу: ${missingPhotos.length} пункт(ов) чек-листа требуют загрузки фото. Пожалуйста, загрузите все обязательные фото.`);
+                return;
+            }
+
+            // Check final photo
+            if (!task.finalPhotoUrl) {
+                alert('Невозможно принять работу: необходимо загрузить финальное фото результата.');
+                return;
+            }
+        }
+
         setIsProcessing(true);
         let nextStatus;
         if (user.role === ROLES.FOREMAN) {
-            nextStatus = STATUSES.UNDER_REVIEW_PM;
+            nextStatus = STATUSES.UNDER_REVIEW_PM; // Foreman approves worker's submission -> send to PM
         } else if (user.role === ROLES.PM) {
             nextStatus = STATUSES.COMPLETED;
         }
@@ -150,17 +168,28 @@ const ReviewTask = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                        <div className="flex items-start">
-                            <div className="flex-shrink-0 bg-slate-100 rounded-lg p-2 text-slate-500">
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2 mb-1">
+                                <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Расположение</p>
                             </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-slate-500">Локация</p>
-                                <p className="text-base font-semibold text-slate-800">{task.objectName}</p>
+                            <div className="ml-2 space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase w-20 flex-shrink-0">Раздел</span>
+                                    <span className="text-sm font-semibold text-slate-800">{task.objectName}</span>
+                                </div>
                                 {task.objectAddress && (
-                                    <p className="text-sm text-slate-500">{task.objectAddress}</p>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase w-20 flex-shrink-0">Адрес</span>
+                                        <span className="text-sm text-slate-600">{task.objectAddress}</span>
+                                    </div>
                                 )}
-                                <p className="text-sm text-indigo-600 mt-1">{task.subObjectName}</p>
+                                {task.subObjectName && (
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-bold text-indigo-400 uppercase w-20 flex-shrink-0">Подраздел</span>
+                                        <span className="text-sm font-semibold text-indigo-600">{task.subObjectName}</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -186,6 +215,28 @@ const ReviewTask = () => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Assignees Section */}
+                    {task.assigneeNames && task.assigneeNames.length > 0 && (
+                        <div className="mt-6 pt-5 border-t border-slate-100">
+                            <div className="flex items-center gap-2 mb-3">
+                                <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Исполнители</p>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {[...task.assigneeNames].map((name, i) => (
+                                    <div key={i} className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-full pl-1 pr-3 py-1">
+                                        <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                                            <span className="text-xs font-bold text-indigo-600">{name.charAt(0)}</span>
+                                        </div>
+                                        <span className="text-sm font-medium text-slate-700">{name}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -204,11 +255,11 @@ const ReviewTask = () => {
                             }}
                         />
                     </div>
-                    {(task.finalPhotoUrl || (user.role === ROLES.FOREMAN && (task.status === STATUSES.UNDER_REVIEW_FOREMAN || task.status === STATUSES.REWORK_PM))) && (
+                    {(task.finalPhotoUrl || (user.role === ROLES.FOREMAN && task.status === STATUSES.UNDER_REVIEW_FOREMAN)) && (
                         <div className="mb-6">
                             <h3 className="text-lg font-medium text-gray-700 mb-3">Финальный результат</h3>
 
-                            {user.role === ROLES.FOREMAN && (task.status === STATUSES.UNDER_REVIEW_FOREMAN || task.status === STATUSES.REWORK_PM) ? (
+                            {user.role === ROLES.FOREMAN && task.status === STATUSES.UNDER_REVIEW_FOREMAN ? (
                                 <PhotoUpload
                                     currentPhoto={task.finalPhotoUrl}
                                     onPhotoChange={handleFinalPhotoChange}
@@ -309,13 +360,7 @@ const ReviewTask = () => {
                     {!showCommentForm ? (
                         <div className="space-y-4">
                             <button
-                                onClick={() => {
-                                    if (user.role === ROLES.FOREMAN && task.status === STATUSES.REWORK_PM) {
-                                        openCommentForm('APPROVE');
-                                    } else {
-                                        handleApprove();
-                                    }
-                                }}
+                                onClick={() => handleApprove()}
                                 disabled={isProcessing}
                                 className="w-full relative group overflow-hidden px-6 py-5 rounded-xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                             >
@@ -324,9 +369,7 @@ const ReviewTask = () => {
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path>
                                     </svg>
-                                    {isProcessing ? 'Обработка...' :
-                                        (user.role === ROLES.FOREMAN && task.status === STATUSES.REWORK_PM) ? 'Отправить ПМ (Исправлено)' :
-                                            'Принять работу'}
+                                    {isProcessing ? 'Обработка...' : 'Принять работу'}
                                 </div>
                             </button>
 
@@ -340,7 +383,7 @@ const ReviewTask = () => {
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path>
                                     </svg>
-                                    {(user.role === ROLES.FOREMAN && task.status === STATUSES.REWORK_PM) ? 'Вернуть работнику' : 'На доработку'}
+                                    На доработку
                                 </div>
                             </button>
                         </div>

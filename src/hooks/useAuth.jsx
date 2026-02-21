@@ -24,8 +24,8 @@ export const AuthProvider = ({ children }) => {
     initAuth();
   }, []);
 
-  const login = async (email, password) => {
-    const result = await apiClient.login(email, password);
+  const login = async (phone, password) => {
+    const result = await apiClient.login(phone, password);
     if (result.success) {
       setUser(result.user);
       return true;
@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   if (loading) {
-      return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    return <div className="flex justify-center items-center h-screen">Loading...</div>;
   }
 
   return (

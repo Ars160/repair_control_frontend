@@ -3,31 +3,55 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  const formatPhoneNumber = (value) => {
+    if (!value) return value;
+    const phoneNumber = value.replace(/[^\d]/g, '');
+    const phoneNumberLength = phoneNumber.length;
+    if (phoneNumberLength <= 1) return '+7';
+    if (phoneNumberLength <= 4) {
+      return `+7 (${phoneNumber.slice(1, 4)}`;
+    }
+    if (phoneNumberLength <= 7) {
+      return `+7 (${phoneNumber.slice(1, 4)}) ${phoneNumber.slice(4, 7)}`;
+    }
+    if (phoneNumberLength <= 9) {
+      return `+7 (${phoneNumber.slice(1, 4)}) ${phoneNumber.slice(4, 7)}-${phoneNumber.slice(7, 9)}`;
+    }
+    return `+7 (${phoneNumber.slice(1, 4)}) ${phoneNumber.slice(4, 7)}-${phoneNumber.slice(7, 9)}-${phoneNumber.slice(9, 11)}`;
+  };
+
+  const handlePhoneChange = (e) => {
+    const formattedPhoneNumber = formatPhoneNumber(e.target.value);
+    setPhone(formattedPhoneNumber);
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    const success = await login(email, password);
+    // Remove formatting before sending to API
+    const cleanPhone = phone.replace(/[^\d]/g, '');
+    const success = await login(cleanPhone, password);
 
     if (success) {
       navigate('/dashboard');
     } else {
-      setError('Не удалось войти. Проверьте email и пароль.');
+      setError('Не удалось войти. Проверьте номер телефона и пароль.');
     }
     setLoading(false);
   };
 
   // Helper to fill demo credentials
-  const fillCredentials = (roleEmail) => {
-    setEmail(roleEmail);
+  const fillCredentials = (rolePhone) => {
+    setPhone(formatPhoneNumber(rolePhone));
     setPassword('123456');
   };
 
@@ -48,23 +72,23 @@ const Login = () => {
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div className="space-y-1.5">
-            <label htmlFor="email" className="block text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">
-              Email
+            <label htmlFor="phone" className="block text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">
+              Номер телефона
             </label>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                 <svg className="h-5 w-5 text-slate-400 group-focus-within:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
               </div>
               <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="phone"
+                type="text"
+                value={phone}
+                onChange={handlePhoneChange}
                 required
                 className="block w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 font-medium"
-                placeholder="name@company.com"
+                placeholder="+7 (707) 000-00-00"
               />
             </div>
           </div>
@@ -117,13 +141,19 @@ const Login = () => {
             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Быстрый вход (Demo)</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            {['Смет:estimator', 'Раб:worker', 'Прораб:foreman', 'PM:pm', 'Admin:admin'].map((role) => {
-              const [label, prefix] = role.split(':');
+            {[
+              ['Смет:77011111111', 'estimator'],
+              ['Раб:77022222222', 'worker'],
+              ['Прораб:77033333333', 'foreman'],
+              ['PM:77044444444', 'pm'],
+              ['Admin:77055555555', 'admin']
+            ].map(([data, prefix]) => {
+              const [label, phoneNum] = data.split(':');
               return (
                 <button
                   key={prefix}
                   type="button"
-                  onClick={() => fillCredentials(`${prefix}@bauberg.com`)}
+                  onClick={() => fillCredentials(phoneNum)}
                   className="px-3 py-2 text-xs font-semibold bg-slate-50 text-slate-600 rounded-lg hover:bg-slate-100 hover:text-blue-700 border border-transparent hover:border-blue-200 transition-all"
                 >
                   {label}

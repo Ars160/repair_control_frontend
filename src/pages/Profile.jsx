@@ -1,6 +1,16 @@
 import React from 'react';
 import { useAuth } from '../hooks/useAuth';
 
+const formatPhoneNumber = (value) => {
+    if (!value) return '—';
+    const phone = value.replace(/[^\d]/g, '');
+    if (phone.length < 2) return `+${phone}`;
+    if (phone.length <= 4) return `+7 (${phone.slice(1, 4)}`;
+    if (phone.length <= 7) return `+7 (${phone.slice(1, 4)}) ${phone.slice(4, 7)}`;
+    if (phone.length <= 9) return `+7 (${phone.slice(1, 4)}) ${phone.slice(4, 7)}-${phone.slice(7, 9)}`;
+    return `+7 (${phone.slice(1, 4)}) ${phone.slice(4, 7)}-${phone.slice(7, 9)}-${phone.slice(9, 11)}`;
+};
+
 const Profile = () => {
     const { user, logout } = useAuth();
 
@@ -51,8 +61,8 @@ const Profile = () => {
 
                     <div className="mt-8 grid gap-6 border-t border-slate-100 pt-8">
                         <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Email</label>
-                            <p className="text-slate-700 font-medium">{user.email}</p>
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Телефон</label>
+                            <p className="text-slate-700 font-medium">{formatPhoneNumber(user.phone)}</p>
                         </div>
 
                         <div>

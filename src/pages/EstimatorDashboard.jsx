@@ -77,6 +77,15 @@ const EstimatorDashboard = () => {
         if (!objectSubObjects[objectId]) {
             const data = await api.getSubObjectsByObject(objectId);
             setObjectSubObjects(prev => ({ ...prev, [objectId]: data }));
+            // Preload tasks for all sub-objects
+            if (data && data.length > 0) {
+                const tasksMap = {};
+                await Promise.all(data.map(async (sub) => {
+                    const tasks = await api.getTasksBySubObject(sub.id);
+                    tasksMap[sub.id] = tasks;
+                }));
+                setSubObjectTasks(prev => ({ ...prev, ...tasksMap }));
+            }
         }
     };
 
@@ -431,27 +440,15 @@ const EstimatorDashboard = () => {
     };
 
     // --- Template Stats (For Dropdowns) ---
-    // const [showTemplateManager, setShowTemplateManager] = useState(false); // Removed
-    // const [showSubObjectTemplateManager, setShowSubObjectTemplateManager] = useState(false); // Removed
-
-    const [templates, setTemplates] = useState([]); // Checklist Templates
     const [subObjectTemplates, setSubObjectTemplates] = useState([]); // SubObject Templates
 
-    const loadTemplates = async () => {
-        const data = await api.getTemplates();
-        setTemplates(data);
-    };
 
     const loadSubObjectTemplates = async () => {
         const data = await api.getAllSubObjectTemplates();
         setSubObjectTemplates(data);
     };
 
-    useEffect(() => {
-        if (showTaskForm) {
-            loadTemplates();
-        }
-    }, [showTaskForm]);
+
 
     useEffect(() => {
         if (showSubObjectForm) {
@@ -459,46 +456,7 @@ const EstimatorDashboard = () => {
         }
     }, [showSubObjectForm]);
 
-    const handleTemplateSelect = (e) => {
-        const value = e.target.value;
 
-        if (value === 'custom') {
-            if (newTask.checklist.length > 0) {
-                if (!window.confirm("Очистить текущий чеклист?")) {
-                    e.target.value = ""; // Reset select if cancelled
-                    return;
-                }
-            }
-            setNewTask(prev => ({
-                ...prev,
-                templateId: null,
-                checklist: []
-            }));
-            return;
-        }
-
-        const templateId = Number(value);
-        if (!templateId) return;
-
-        const template = templates.find(t => t.id === templateId);
-        if (template) {
-            if (newTask.checklist.length > 0) {
-                if (!window.confirm("Заменить текущий чеклист пунктами из шаблона?")) {
-                    e.target.value = ""; // Reset select
-                    return;
-                }
-            }
-            setNewTask(prev => ({
-                ...prev,
-                templateId: template.id,
-                checklist: template.items.map(item => ({
-                    description: item.description,
-                    isPhotoRequired: item.isPhotoRequired,
-                    isCompleted: false
-                }))
-            }));
-        }
-    };
 
 
     // --- Render Helpers ---
@@ -507,7 +465,7 @@ const EstimatorDashboard = () => {
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/60 p-4 sm:p-6 rounded-2xl glass-panel sticky top-4 z-20 backdrop-blur-xl">
+            <div className="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200 shadow-sm mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-xl sm:text-3xl font-bold text-slate-800 tracking-tight">Рабочее пространство</h1>
                     <p className="text-slate-500 text-xs sm:text-sm mt-1">Управление проектами и задачами</p>
@@ -798,7 +756,7 @@ const EstimatorDashboard = () => {
                                                                     onClick={() => toggleSubObject(subObject.id)}
                                                                 >
                                                                     <span className="font-medium text-slate-700 text-sm">{subObject.name}</span>
-                                                                    <div className="flex items-center gap-2 opactiy-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                                                                    <div className="flex items-center gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                                                                         <button onClick={(e) => startEditSubObject(e, subObject, object.id)} className="text-slate-400 hover:text-indigo-600" title="Ред.">
                                                                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                                                         </button>
@@ -820,57 +778,89 @@ const EstimatorDashboard = () => {
 
                                                                 {/* Task Form inside SubObject Card */}
                                                                 {showTaskForm === subObject.id && (
-                                                                    <div className="mb-3 p-3 bg-indigo-50 rounded-lg border border-indigo-100 relative">
-                                                                        {editingTaskId && <div className="absolute top-1 right-1 text-[10px] font-bold text-orange-500 uppercase">Редактирование</div>}
-                                                                        <h5 className="text-xs font-bold text-indigo-800 mb-2 uppercase">{editingTaskId ? 'Ред. Задачу' : 'Новая задача'}</h5>
-                                                                        <form onSubmit={(e) => handleCreateTask(e, subObject.id)} className="space-y-2">
-                                                                            <input
-                                                                                className="w-full border-indigo-200 rounded text-xs p-1.5 focus:ring-indigo-500"
-                                                                                placeholder="Название задачи"
-                                                                                value={newTask.title}
-                                                                                onChange={e => setNewTask({ ...newTask, title: e.target.value })}
-                                                                                required
-                                                                            />
-                                                                            <div className="flex gap-1">
-                                                                                <select
-                                                                                    className="flex-1 border-indigo-200 rounded text-xs p-1.5"
-                                                                                    value={newTask.taskType}
-                                                                                    onChange={e => setNewTask({ ...newTask, taskType: e.target.value })}
-                                                                                >
-                                                                                    <option value="SEQUENTIAL">Посл.</option>
-                                                                                    <option value="PARALLEL">Парал.</option>
-                                                                                </select>
+                                                                    <div className="mb-4 p-4 bg-slate-50 rounded-2xl border border-indigo-100/50 shadow-inner relative overflow-hidden">
+                                                                        <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500/20"></div>
+                                                                        <div className="flex justify-between items-center mb-4">
+                                                                            <h5 className="text-[11px] font-black text-indigo-600 uppercase tracking-widest">{editingTaskId ? 'Редактирование задачи' : 'Новая задача'}</h5>
+                                                                            {editingTaskId && <span className="text-[8px] px-1.5 py-0.5 bg-orange-100 text-orange-600 rounded-full font-bold uppercase">ID: {editingTaskId}</span>}
+                                                                        </div>
+                                                                        <form onSubmit={(e) => handleCreateTask(e, subObject.id)} className="space-y-4">
+                                                                            <div className="space-y-1">
+                                                                                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest px-1">Название</label>
                                                                                 <input
-                                                                                    type="date"
-                                                                                    className="flex-1 border-indigo-200 rounded text-xs p-1.5"
-                                                                                    value={newTask.deadline}
-                                                                                    onChange={e => setNewTask({ ...newTask, deadline: e.target.value })}
+                                                                                    className="w-full border border-slate-300 rounded-xl text-sm px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none bg-white font-medium"
+                                                                                    placeholder="Что нужно сделать?"
+                                                                                    value={newTask.title}
+                                                                                    onChange={e => setNewTask({ ...newTask, title: e.target.value })}
+                                                                                    required
                                                                                 />
                                                                             </div>
-                                                                            <select
-                                                                                multiple
-                                                                                className="w-full border-indigo-200 rounded text-xs p-1.5 h-16"
-                                                                                value={newTask.assigneeIds}
-                                                                                onChange={e => {
-                                                                                    const options = [...e.target.selectedOptions];
-                                                                                    const values = options.map(option => option.value);
-                                                                                    setNewTask({ ...newTask, assigneeIds: values });
-                                                                                }}
-                                                                            >
-                                                                                {availableTaskWorkers.map(u => (
-                                                                                    <option key={u.id} value={u.id}>{u.fullName}</option>
-                                                                                ))}
-                                                                            </select>
+
+                                                                            <div className="grid grid-cols-2 gap-3">
+                                                                                <div className="space-y-1">
+                                                                                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest px-1">Тип</label>
+                                                                                    <select
+                                                                                        className="w-full border border-slate-300 rounded-xl text-xs px-2 py-2 bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none font-medium cursor-pointer"
+                                                                                        value={newTask.taskType}
+                                                                                        onChange={e => setNewTask({ ...newTask, taskType: e.target.value })}
+                                                                                    >
+                                                                                        <option value="SEQUENTIAL">Посл.</option>
+                                                                                        <option value="PARALLEL">Парал.</option>
+                                                                                    </select>
+                                                                                </div>
+                                                                                <div className="space-y-1">
+                                                                                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest px-1">Срок</label>
+                                                                                    <input
+                                                                                        type="date"
+                                                                                        className="w-full border border-slate-300 rounded-xl text-xs px-2 py-1.5 bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none font-medium"
+                                                                                        value={newTask.deadline}
+                                                                                        onChange={e => setNewTask({ ...newTask, deadline: e.target.value })}
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+
+                                                                            <div className="space-y-1.5">
+                                                                                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest px-1">Исполнители</label>
+                                                                                <div className="bg-white border border-slate-200 rounded-xl p-2 max-h-32 overflow-y-auto space-y-1 scrollbar-thin shadow-sm">
+                                                                                    {availableTaskWorkers.length === 0 && <p className="text-[10px] text-slate-400 italic text-center py-2">Сначала назначьте рабочих на объект</p>}
+                                                                                    {availableTaskWorkers
+                                                                                        .filter(u => u.status !== 'FIRED') // Always hide fired in task form
+                                                                                        .map(u => (
+                                                                                            <label key={u.id} className={`flex items-center gap-2.5 p-1.5 hover:bg-slate-50 rounded-lg transition-colors group/worker ${u.status === 'FROZEN' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+                                                                                                <input
+                                                                                                    type="checkbox"
+                                                                                                    disabled={u.status === 'FROZEN'}
+                                                                                                    checked={newTask.assigneeIds.includes(String(u.id)) || newTask.assigneeIds.includes(Number(u.id))}
+                                                                                                    onChange={(e) => {
+                                                                                                        if (u.status === 'FROZEN') return;
+                                                                                                        const checked = e.target.checked;
+                                                                                                        const currentIds = newTask.assigneeIds.map(String);
+                                                                                                        const newIds = checked
+                                                                                                            ? [...currentIds, String(u.id)]
+                                                                                                            : currentIds.filter(id => id !== String(u.id));
+                                                                                                        setNewTask({ ...newTask, assigneeIds: newIds });
+                                                                                                    }}
+                                                                                                    className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 transition-all"
+                                                                                                />
+                                                                                                <span className={`text-[11px] font-medium ${u.status === 'FROZEN' ? 'text-slate-400' : 'text-slate-600 group-hover/worker:text-indigo-600'}`}>
+                                                                                                    {u.fullName} {u.status === 'FROZEN' && <span className="text-[9px] bg-amber-50 text-amber-600 px-1 rounded">Заморожен</span>}
+                                                                                                </span>
+                                                                                            </label>
+                                                                                        ))}
+                                                                                </div>
+                                                                            </div>
+
                                                                             {newTask.taskType === 'PARALLEL' && (
                                                                                 <div className="text-[10px] text-amber-700 bg-amber-50 p-2 rounded mt-1 border border-amber-200">
                                                                                     ⚠️ <strong>Параллельные задачи:</strong> назначайте разных работников
                                                                                 </div>
                                                                             )}
-                                                                            <div className="grid grid-cols-2 gap-2 mt-2">
+
+                                                                            <div className="grid grid-cols-2 gap-3">
                                                                                 <div className="space-y-1">
-                                                                                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest pl-1">Приоритет</label>
+                                                                                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest px-1">Приоритет</label>
                                                                                     <select
-                                                                                        className="w-full border-indigo-200 rounded-lg text-xs p-2 bg-white"
+                                                                                        className="w-full border border-slate-300 rounded-xl text-xs px-2 py-2 bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none font-medium cursor-pointer"
                                                                                         value={newTask.priority}
                                                                                         onChange={e => setNewTask({ ...newTask, priority: e.target.value })}
                                                                                     >
@@ -881,9 +871,9 @@ const EstimatorDashboard = () => {
                                                                                 </div>
 
                                                                                 <div className="space-y-1">
-                                                                                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest pl-1">Расположение</label>
+                                                                                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest px-1">Позиция</label>
                                                                                     <select
-                                                                                        className="w-full border-indigo-200 rounded-lg text-xs p-2 bg-white"
+                                                                                        className="w-full border border-slate-300 rounded-xl text-xs px-2 py-2 bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none font-medium cursor-pointer"
                                                                                         value={newTask.placement}
                                                                                         onChange={e => setNewTask({ ...newTask, placement: e.target.value })}
                                                                                     >
@@ -894,166 +884,112 @@ const EstimatorDashboard = () => {
                                                                                 </div>
                                                                             </div>
 
+                                                                            <ChecklistManager
+                                                                                taskId={editingTaskId}
+                                                                                initialItems={editingTaskId ? [] : newTask.checklist}
+                                                                                onUpdate={(updatedChecklist) => {
+                                                                                    setNewTask(prev => ({ ...prev, checklist: updatedChecklist }));
+                                                                                }}
+                                                                            />
 
-                                                                            {!editingTaskId && (
-                                                                                <>
-                                                                                    {/* Template Selector */}
-                                                                                    <div className="pt-2 border-t border-indigo-100 mb-2">
-                                                                                        <div className="flex justify-between items-center mb-1">
-                                                                                            <label className="text-[10px] font-bold text-slate-500 uppercase">Чек-лист</label>
-                                                                                            <select
-                                                                                                className="text-xs border-none bg-indigo-50 text-indigo-600 font-bold focus:ring-0 cursor-pointer hover:bg-indigo-100 rounded px-2 py-0.5 transition-colors"
-                                                                                                onChange={handleTemplateSelect}
-                                                                                                defaultValue=""
-                                                                                            >
-                                                                                                <option value="" disabled>Загрузить шаблон...</option>
-                                                                                                <option value="custom" className="font-bold text-orange-600">-- Пустой (сбросить) --</option>
-                                                                                                {templates.map(t => (
-                                                                                                    <option key={t.id} value={t.id}>{t.name}</option>
-                                                                                                ))}
-                                                                                            </select>
-                                                                                        </div>
-                                                                                        <div className="space-y-1">
-                                                                                            {newTask.checklist.map((item, idx) => (
-                                                                                                <div key={idx} className="flex gap-1 items-center bg-white p-1 rounded border border-slate-100 group relative">
-                                                                                                    <span className="text-[10px] text-slate-400">#{idx + 1}</span>
-                                                                                                    <span className="flex-1 text-[11px] truncate" title={item.description}>{item.description}</span>
-                                                                                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                                                        <label className="flex items-center gap-0.5 cursor-pointer">
-                                                                                                            <input
-                                                                                                                type="checkbox"
-                                                                                                                checked={item.isPhotoRequired}
-                                                                                                                onChange={(e) => {
-                                                                                                                    const updated = [...newTask.checklist];
-                                                                                                                    updated[idx] = { ...updated[idx], isPhotoRequired: e.target.checked };
-                                                                                                                    setNewTask({ ...newTask, checklist: updated });
-                                                                                                                }}
-                                                                                                                className="w-2.5 h-2.5 rounded border-slate-300 text-indigo-600"
-                                                                                                            />
-                                                                                                            <span className="text-[9px] text-slate-500 font-bold">Фото</span>
-                                                                                                        </label>
-                                                                                                        <button
-                                                                                                            type="button"
-                                                                                                            onClick={() => setNewTask({ ...newTask, checklist: newTask.checklist.filter((_, i) => i !== idx) })}
-                                                                                                            className="text-red-400 hover:text-red-600 px-1"
-                                                                                                        >
-                                                                                                            ×
-                                                                                                        </button>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            ))}
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div className="flex flex-col sm:flex-row gap-2">
-                                                                                        <input
-                                                                                            id={`new-checklist-description-${subObject.id}`}
-                                                                                            className="flex-1 border-indigo-100 rounded-lg text-xs p-2.5 bg-white"
-                                                                                            placeholder="Новый пункт чек-листа..."
-                                                                                            onKeyDown={(e) => {
-                                                                                                if (e.key === 'Enter') {
-                                                                                                    e.preventDefault();
-                                                                                                    const val = e.target.value.trim();
-                                                                                                    if (val) {
-                                                                                                        const photoReq = document.getElementById(`new-checklist-photo-req-${subObject.id}`).checked;
-                                                                                                        setNewTask({ ...newTask, checklist: [...newTask.checklist, { description: val, isPhotoRequired: photoReq }] });
-                                                                                                        e.target.value = '';
-                                                                                                        document.getElementById(`new-checklist-photo-req-${subObject.id}`).checked = false;
-                                                                                                    }
-                                                                                                }
-                                                                                            }}
-                                                                                        />
-                                                                                        <div className="flex gap-2">
-                                                                                            <label className="flex items-center gap-2 cursor-pointer bg-white px-3 py-2 rounded-lg border border-indigo-100 flex-1 sm:flex-none">
-                                                                                                <input
-                                                                                                    type="checkbox"
-                                                                                                    id={`new-checklist-photo-req-${subObject.id}`}
-                                                                                                    className="w-4 h-4 rounded border-slate-300 text-indigo-600"
-                                                                                                />
-                                                                                                <span className="text-[10px] text-slate-500 font-bold uppercase">ФОТО</span>
-                                                                                            </label>
-                                                                                            <button
-                                                                                                type="button"
-                                                                                                onClick={() => {
-                                                                                                    const input = document.getElementById(`new-checklist-description-${subObject.id}`);
-                                                                                                    const val = input.value.trim();
-                                                                                                    const photoReq = document.getElementById(`new-checklist-photo-req-${subObject.id}`).checked;
-                                                                                                    if (val) {
-                                                                                                        setNewTask({ ...newTask, checklist: [...newTask.checklist, { description: val, isPhotoRequired: photoReq }] });
-                                                                                                        input.value = '';
-                                                                                                        document.getElementById(`new-checklist-photo-req-${subObject.id}`).checked = false;
-                                                                                                    }
-                                                                                                }}
-                                                                                                className="bg-indigo-600 text-white px-4 rounded-lg font-bold"
-                                                                                            >
-                                                                                                +
-                                                                                            </button>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </>
-                                                                            )}
                                                                             {newTask.placement === 'AFTER' && (
-                                                                                <select
-                                                                                    className="w-full border-indigo-200 rounded text-xs p-1.5 mt-2"
-                                                                                    value={newTask.placementTargetId}
-                                                                                    onChange={e => setNewTask({ ...newTask, placementTargetId: e.target.value })}
-                                                                                    required
-                                                                                >
-                                                                                    <option value="">Выберите задачу...</option>
-                                                                                    {subObjectTasks[subObject.id]?.map(t => (
-                                                                                        <option key={t.id} value={t.id}>{t.title} (Status: {t.status})</option>
-                                                                                    ))}
-                                                                                </select>
+                                                                                <div className="space-y-1 pt-1">
+                                                                                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest px-1">Выбрать предыдущую задачу</label>
+                                                                                    <select
+                                                                                        className="w-full border border-slate-300 rounded-xl text-xs px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none font-medium"
+                                                                                        value={newTask.placementTargetId}
+                                                                                        onChange={e => setNewTask({ ...newTask, placementTargetId: e.target.value })}
+                                                                                        required
+                                                                                    >
+                                                                                        <option value="">Выберите задачу...</option>
+                                                                                        {subObjectTasks[subObject.id]?.map(t => (
+                                                                                            <option key={t.id} value={t.id}>{t.title}</option>
+                                                                                        ))}
+                                                                                    </select>
+                                                                                </div>
                                                                             )}
 
-
-
-                                                                            {editingTaskId && (
-                                                                                <ChecklistManager
-                                                                                    taskId={editingTaskId}
-                                                                                    onUpdate={(updatedChecklist) => {
-                                                                                        setNewTask(prev => ({ ...prev, checklist: updatedChecklist }));
-                                                                                    }}
-                                                                                />
-                                                                            )}
-
-                                                                            <div className="flex gap-2 mt-2">
-                                                                                <button type="submit" className={`flex-1 text-white py-1.5 rounded text-xs font-semibold ${editingTaskId ? 'bg-orange-500 hover:bg-orange-600' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
-                                                                                    {editingTaskId ? 'Сохранить' : 'Добавить'}
+                                                                            <div className="flex gap-2 pt-2">
+                                                                                <button type="submit" className={`flex-[2] text-white py-2.5 rounded-xl text-xs font-bold shadow-lg transition-all active:scale-[0.97] ${editingTaskId ? 'bg-orange-500 hover:bg-orange-600 shadow-orange-200' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200'}`}>
+                                                                                    {editingTaskId ? 'Сохранить изменения' : 'Добавить задачу'}
                                                                                 </button>
-                                                                                <button type="button" onClick={() => setShowTaskForm(null)} className="px-2 bg-slate-200 rounded text-xs">Отм.</button>
+                                                                                <button type="button" onClick={() => setShowTaskForm(null)} className="flex-1 bg-white border border-slate-200 text-slate-500 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors">Отмена</button>
                                                                             </div>
                                                                         </form>
                                                                     </div>
                                                                 )}
 
                                                                 {/* Task List */}
-                                                                <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1 scrollbar-thin">
-                                                                    {expandedSubObjects[subObject.id] && subObjectTasks[subObject.id]?.map(task => (
-                                                                        <div key={task.id} className="flex justify-between items-center p-2 bg-slate-50 rounded border border-slate-100 hover:bg-white hover:shadow-sm transition-all group">
-                                                                            <span className="text-xs text-slate-700 truncate mr-2">{task.title}</span>
-
-                                                                            <div className="flex items-center gap-1">
-                                                                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium border ${task.status === 'COMPLETED' ? 'bg-green-50 text-green-600 border-green-100' :
-                                                                                    task.status === 'ACTIVE' ? 'bg-blue-50 text-blue-600 border-blue-100' :
-                                                                                        'bg-yellow-50 text-yellow-600 border-yellow-100'
-                                                                                    }`}>
-                                                                                    {task.status.substring(0, 1)}
-                                                                                </span>
-                                                                                <button onClick={(e) => startEditTask(e, task, subObject.id, project.id)} className="text-slate-300 hover:text-indigo-600 ml-1 hidden group-hover:block" title="Ред.">
-                                                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                                                                </button>
-                                                                                <button onClick={(e) => handleDeleteTask(e, task.id, subObject.id)} className="text-slate-300 hover:text-red-600 hidden group-hover:block" title="Уд.">
-                                                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                                                                </button>
+                                                                {(() => {
+                                                                    const tasks = subObjectTasks[subObject.id] || [];
+                                                                    const activeTasks = tasks.filter(t => t.status !== 'COMPLETED');
+                                                                    const completedTasks = tasks.filter(t => t.status === 'COMPLETED');
+                                                                    const getStatusBadge = (status) => {
+                                                                        const map = {
+                                                                            'ACTIVE': { label: 'В работе', cls: 'bg-blue-50 text-blue-600 border-blue-100' },
+                                                                            'COMPLETED': { label: 'Готово', cls: 'bg-green-50 text-green-600 border-green-100' },
+                                                                            'UNDER_REVIEW_FOREMAN': { label: 'На проверке', cls: 'bg-purple-50 text-purple-600 border-purple-100' },
+                                                                            'UNDER_REVIEW_PM': { label: 'У ПМ', cls: 'bg-indigo-50 text-indigo-600 border-indigo-100' },
+                                                                            'REWORK_FOREMAN': { label: 'Доработка', cls: 'bg-orange-50 text-orange-600 border-orange-100' },
+                                                                            'REWORK_PM': { label: 'Доработка (ПМ)', cls: 'bg-red-50 text-red-600 border-red-100' },
+                                                                        };
+                                                                        return map[status] || { label: status, cls: 'bg-yellow-50 text-yellow-600 border-yellow-100' };
+                                                                    };
+                                                                    const renderTask = (task) => {
+                                                                        const badge = getStatusBadge(task.status);
+                                                                        return (
+                                                                            <div key={task.id} className={`flex justify-between items-center p-2.5 rounded-xl border transition-all group ${task.status === 'COMPLETED' ? 'bg-green-50/30 border-green-100/50 opacity-70' : 'bg-slate-50/50 border-slate-100 hover:bg-white hover:shadow-md hover:border-indigo-100'}`}>
+                                                                                <div className="flex flex-col gap-0.5 max-w-[70%]">
+                                                                                    <span className={`text-[11px] font-semibold truncate ${task.status === 'COMPLETED' ? 'text-green-700 line-through' : 'text-slate-700'}`}>{task.title}</span>
+                                                                                    {task.deadline && <span className="text-[9px] text-slate-400 font-medium">До {new Date(task.deadline).toLocaleDateString()}</span>}
+                                                                                </div>
+                                                                                <div className="flex items-center gap-1.5">
+                                                                                    <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold border shadow-sm ${badge.cls}`}>
+                                                                                        {badge.label}
+                                                                                    </span>
+                                                                                    <div className="flex items-center gap-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                                                                                        <button onClick={(e) => startEditTask(e, task, subObject.id, project.id)} className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded" title="Редактировать">
+                                                                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                                                        </button>
+                                                                                        <button onClick={(e) => handleDeleteTask(e, task.id, subObject.id)} className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded" title="Удалить">
+                                                                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </div>
                                                                             </div>
+                                                                        );
+                                                                    };
+                                                                    return (
+                                                                        <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1 mt-4 scrollbar-thin">
+                                                                            {expandedSubObjects[subObject.id] && (
+                                                                                <>
+                                                                                    {activeTasks.map(renderTask)}
+                                                                                    {completedTasks.length > 0 && activeTasks.length > 0 && (
+                                                                                        <div className="flex items-center gap-2 py-2">
+                                                                                            <div className="flex-1 h-px bg-green-200"></div>
+                                                                                            <span className="text-[9px] font-bold text-green-500 uppercase tracking-widest">Завершённые ({completedTasks.length})</span>
+                                                                                            <div className="flex-1 h-px bg-green-200"></div>
+                                                                                        </div>
+                                                                                    )}
+                                                                                    {completedTasks.map(renderTask)}
+                                                                                </>
+                                                                            )}
+                                                                            {(!subObjectTasks[subObject.id] || tasks.length === 0) && (
+                                                                                <p className="text-center py-4 text-[11px] text-slate-400 italic">Нет созданных задач</p>
+                                                                            )}
                                                                         </div>
-                                                                    ))}
-                                                                    {!expandedSubObjects[subObject.id] && (
-                                                                        <div className="text-center text-[10px] text-slate-400 cursor-pointer hover:text-indigo-500" onClick={() => toggleSubObject(subObject.id)}>
-                                                                            Показать задачи ▼
-                                                                        </div>
-                                                                    )}
-                                                                </div>
+                                                                    );
+                                                                })()}
+                                                                {!expandedSubObjects[subObject.id] && subObjectTasks[subObject.id]?.length > 0 && (
+                                                                    <div className="mt-3 text-center border-t border-slate-50 pt-2">
+                                                                        <button
+                                                                            onClick={() => toggleSubObject(subObject.id)}
+                                                                            className="text-[10px] font-bold text-indigo-500 hover:text-indigo-600 uppercase tracking-widest"
+                                                                        >
+                                                                            Показать задачи ({subObjectTasks[subObject.id].length})
+                                                                        </button>
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         ))}
                                                     </div>
@@ -1072,8 +1008,8 @@ const EstimatorDashboard = () => {
             {
                 showAssignmentModal && (
                     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-zoomIn">
-                            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-indigo-50/30">
+                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-zoomIn flex flex-col max-h-[calc(100dvh-2rem)]">
+                            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-indigo-50/30 shrink-0">
                                 <div>
                                     <h3 className="text-lg font-bold text-slate-800">
                                         {showAssignmentModal.type === 'PROJECT' ? 'Управление командой проекта' : 'Назначение рабочих'}
@@ -1085,7 +1021,7 @@ const EstimatorDashboard = () => {
                                 </button>
                             </div>
 
-                            <div className="p-6 space-y-6">
+                            <div className="p-6 space-y-6 overflow-y-auto scrollbar-thin flex-1">
                                 {/* Assigned Staff List */}
                                 <div className="space-y-3">
                                     <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Текущий состав</h4>
@@ -1140,8 +1076,10 @@ const EstimatorDashboard = () => {
                                                         className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-400"
                                                     >
                                                         <option value="">Выберите прораба...</option>
-                                                        {users.filter(u => u.role === 'FOREMAN').map(u => (
-                                                            <option key={u.id} value={u.id}>{u.fullName}</option>
+                                                        {users.filter(u => u.role === 'FOREMAN' && u.status !== 'FIRED').map(u => (
+                                                            <option key={u.id} value={u.id} disabled={u.status === 'FROZEN'}>
+                                                                {u.fullName} {u.status === 'FROZEN' ? '(ЗАМОРОЖЕН)' : ''}
+                                                            </option>
                                                         ))}
                                                     </select>
                                                     <button
@@ -1165,8 +1103,10 @@ const EstimatorDashboard = () => {
                                                     className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-400"
                                                 >
                                                     <option value="">Выберите рабочего...</option>
-                                                    {users.filter(u => u.role === 'WORKER').map(u => (
-                                                        <option key={u.id} value={u.id}>{u.fullName}</option>
+                                                    {users.filter(u => u.role === 'WORKER' && u.status !== 'FIRED').map(u => (
+                                                        <option key={u.id} value={u.id} disabled={u.status === 'FROZEN'}>
+                                                            {u.fullName} {u.status === 'FROZEN' ? '(ЗАМОРОЖЕН)' : ''}
+                                                        </option>
                                                     ))}
                                                 </select>
                                                 <button
@@ -1184,7 +1124,7 @@ const EstimatorDashboard = () => {
                                 </div>
                             </div>
 
-                            <div className="p-4 bg-slate-50 flex justify-end">
+                            <div className="p-4 bg-slate-50 flex justify-end shrink-0">
                                 <button onClick={() => setShowAssignmentModal(null)} className="px-6 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-sm shadow-sm hover:bg-slate-50 transition-colors">
                                     Закрыть
                                 </button>

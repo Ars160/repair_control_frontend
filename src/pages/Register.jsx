@@ -4,7 +4,7 @@ import api from '../api/client';
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    email: '',
+    phone: '',
     password: '',
     fullName: '',
     role: 'WORKER' // Default role
@@ -13,11 +13,36 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const formatPhoneNumber = (value) => {
+    if (!value) return value;
+    const phoneNumber = value.replace(/[^\d]/g, '');
+    const phoneNumberLength = phoneNumber.length;
+    if (phoneNumberLength <= 1) return '+7';
+    if (phoneNumberLength <= 4) {
+      return `+7 (${phoneNumber.slice(1, 4)}`;
+    }
+    if (phoneNumberLength <= 7) {
+      return `+7 (${phoneNumber.slice(1, 4)}) ${phoneNumber.slice(4, 7)}`;
+    }
+    if (phoneNumberLength <= 9) {
+      return `+7 (${phoneNumber.slice(1, 4)}) ${phoneNumber.slice(4, 7)}-${phoneNumber.slice(7, 9)}`;
+    }
+    return `+7 (${phoneNumber.slice(1, 4)}) ${phoneNumber.slice(4, 7)}-${phoneNumber.slice(7, 9)}-${phoneNumber.slice(9, 11)}`;
+  };
+
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    if (name === 'phone') {
+      setFormData({
+        ...formData,
+        phone: formatPhoneNumber(value)
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -25,7 +50,13 @@ const Register = () => {
     setLoading(true);
     setError('');
 
-    const result = await api.register(formData);
+    // Clean phone number
+    const submitData = {
+      ...formData,
+      phone: formData.phone.replace(/[^\d]/g, '')
+    };
+
+    const result = await api.register(submitData);
 
     if (result.success) {
       alert('Регистрация успешна! Теперь вы можете войти.');
@@ -43,13 +74,14 @@ const Register = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <label className="block text-sm font-medium text-gray-700">Номер телефона</label>
             <input
-              name="email"
-              type="email"
-              value={formData.email}
+              name="phone"
+              type="text"
+              value={formData.phone}
               onChange={handleChange}
               required
+              placeholder="+7 (7xx) xxx-xx-xx"
               className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm"
             />
           </div>

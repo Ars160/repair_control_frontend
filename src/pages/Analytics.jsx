@@ -57,7 +57,7 @@ const Analytics = () => {
                             </div>
                             <div className="shrink-0 flex items-center justify-center">
                                 <div className="w-24 h-24 sm:w-28 sm:h-28 relative">
-                                    <svg className="w-full h-full transform -rotate-90">
+                                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 112 112">
                                         <circle cx="56" cy="56" r="48" stroke="currentColor" strokeWidth="10" fill="transparent" className="text-slate-100" />
                                         <circle cx="56" cy="56" r="48" stroke="currentColor" strokeWidth="10" fill="transparent"
                                             strokeDasharray={301.6}
