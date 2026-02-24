@@ -283,17 +283,35 @@ const ChecklistSection = ({ taskId, checklists, onUpdate, readOnly = false, canR
 
     const handlePhotoUpdate = async (itemId, photoUrl) => {
         setLoading(true);
+
+        // If photo is being cleared (null), just update local state — no upload call needed
+        if (!photoUrl) {
+            setItems(items.map(item =>
+                item.id === itemId ? { ...item, photoUrl: null } : item
+            ));
+            onUpdate?.();
+            setLoading(false);
+            return;
+        }
+
         const result = await api.updateChecklistPhoto(itemId, photoUrl);
         if (result.success) {
+            // Use the real S3 URL returned from the server, not the raw base64
+            const serverPhotoUrl = result.data?.photoUrl
+                ? (result.data.photoUrl.startsWith('http') || result.data.photoUrl.startsWith('data:')
+                    ? result.data.photoUrl
+                    : `/files/${result.data.photoUrl}`)
+                : photoUrl;
+
             // Auto-complete if photo is added
-            if (photoUrl && !items.find(i => i.id === itemId).isCompleted) {
+            if (!items.find(i => i.id === itemId).isCompleted) {
                 await api.toggleChecklistComplete(itemId, true);
                 setItems(items.map(item =>
-                    item.id === itemId ? { ...item, photoUrl, isCompleted: true, remark: null } : item
+                    item.id === itemId ? { ...item, photoUrl: serverPhotoUrl, isCompleted: true, remark: null } : item
                 ));
             } else {
                 setItems(items.map(item =>
-                    item.id === itemId ? { ...item, photoUrl } : item
+                    item.id === itemId ? { ...item, photoUrl: serverPhotoUrl } : item
                 ));
             }
             onUpdate?.();

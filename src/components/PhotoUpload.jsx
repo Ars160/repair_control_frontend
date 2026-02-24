@@ -12,7 +12,7 @@ const PhotoUpload = ({ currentPhoto, onPhotoChange, label = "Загрузить 
         await processFile(file);
     };
 
-    const processFile = async (file) => {
+    const processFile = (file) => {
         if (!file.type.startsWith('image/')) {
             alert('Пожалуйста, загрузите изображение');
             return;
@@ -20,12 +20,32 @@ const PhotoUpload = ({ currentPhoto, onPhotoChange, label = "Загрузить 
 
         const reader = new FileReader();
         reader.onloadend = () => {
-            setPreview(reader.result);
+            const img = new Image();
+            img.onload = () => {
+                // Resize to max 1920px on longest side, compress to 85% JPEG
+                const MAX_SIZE = 1920;
+                let { width, height } = img;
+                if (width > MAX_SIZE || height > MAX_SIZE) {
+                    if (width > height) {
+                        height = Math.round(height * MAX_SIZE / width);
+                        width = MAX_SIZE;
+                    } else {
+                        width = Math.round(width * MAX_SIZE / height);
+                        height = MAX_SIZE;
+                    }
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                const compressed = canvas.toDataURL('image/jpeg', 0.85);
+                setPreview(compressed);
+                onPhotoChange(compressed);
+            };
+            img.src = reader.result;
         };
         reader.readAsDataURL(file);
-
-        const base64 = await convertToBase64(file);
-        onPhotoChange(base64);
     };
 
     const convertToBase64 = (file) => {
