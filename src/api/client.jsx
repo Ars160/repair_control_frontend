@@ -496,6 +496,16 @@ export const apiClient = {
         }
     },
 
+    generateTelegramToken: async () => {
+        try {
+            const response = await api.post('/api/telegram/link-token');
+            return response.data;
+        } catch (error) {
+            console.error("Generate telegram token error", error);
+            return null;
+        }
+    },
+
     // --- Notification APIs ---
     getUnreadNotifications: async () => {
         try {

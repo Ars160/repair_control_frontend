@@ -113,6 +113,21 @@ const NotificationBell = () => {
 
     const displayedNotifications = activeTab === 'NEW' ? notifications : allNotifications;
 
+    const handleConnectTelegram = async () => {
+        try {
+            const response = await api.generateTelegramToken();
+            if (response && response.token) {
+                const url = `https://t.me/${telegramBotUsername}?start=${response.token}`;
+                window.open(url, '_blank', 'noopener,noreferrer');
+            } else {
+                alert('Не удалось получить код привязки. Попробуйте позже.');
+            }
+        } catch (error) {
+            console.error("Failed to generate telegram token", error);
+            alert('Ошибка при подключении Telegram.');
+        }
+    };
+
     return (
         <div className="relative mr-2 sm:mr-6" ref={dropdownRef}>
             <button
@@ -216,17 +231,15 @@ const NotificationBell = () => {
                     <div className="bg-slate-50 px-4 py-3 rounded-b-2xl text-center border-t border-slate-100 flex-none flex flex-col gap-2">
                         {/* Telegram Connect Button */}
                         {user && !user.telegramChatId && telegramBotUsername && (
-                            <a
-                                href={`https://t.me/${telegramBotUsername}?start=${user.id}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <button
+                                onClick={handleConnectTelegram}
                                 className="flex items-center justify-center gap-2 w-full py-2 bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-blue-100 transition-colors mb-2"
                             >
                                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.48-.94-2.4-1.55-1.06-.7-.37-1.09.23-1.72.15-.16 2.81-2.57 2.86-2.8.01-.05.01-.1-.06-.12-.07-.02-.17-.01-.25.02-.11.04-1.87 1.18-5.28 3.48-.5.34-.95.5-1.35.49-.44-.01-1.29-.25-1.92-.42-.78-.21-1.4-.32-1.33-.87.03-.28.42-.57 1.15-.87 4.5-1.96 7.51-3.26 9.02-3.9 4.31-1.82 5.21-1.78 5.75-1.77.12 0 .39.03.57.17.15.11.19.26.2.43 0 .15.01.32.01.52z" />
                                 </svg>
                                 Подключить Telegram
-                            </a>
+                            </button>
                         )}
 
                         <div className="flex gap-2 justify-center">
