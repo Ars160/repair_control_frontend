@@ -26,9 +26,15 @@ const ReviewTask = () => {
     const handleFinalPhotoChange = async (base64) => {
         const result = await api.updateTaskFinalPhoto(id, base64);
         if (result.success) {
-            setTask(prev => ({ ...prev, finalPhotoUrl: base64 }));
+            const serverUrl = result.data?.finalPhotoUrl;
+            const resolvedUrl = serverUrl
+                ? (serverUrl.startsWith('http') || serverUrl.startsWith('data:') ? serverUrl : `/files/${serverUrl}`)
+                : null;
+            setTask(prev => ({ ...prev, finalPhotoUrl: resolvedUrl }));
+        } else if (!base64) {
+            setTask(prev => ({ ...prev, finalPhotoUrl: null }));
         } else {
-            alert('Не удалось загрузить фото: ' + (result.message || 'Неизвестная ошибка'));
+            alert('Не удалось изменить фото: ' + (result.message || 'Неизвестная ошибка'));
         }
     };
 
