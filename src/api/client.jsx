@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8080/';
+// In production: use relative URL so nginx proxies requests to backend
+// In local dev: use localhost:8080 directly
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 // Create axios instance
 const api = axios.create({
