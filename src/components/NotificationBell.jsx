@@ -114,15 +114,26 @@ const NotificationBell = () => {
     const displayedNotifications = activeTab === 'NEW' ? notifications : allNotifications;
 
     const handleConnectTelegram = async () => {
+        // Safari on iOS blocks window.open if it's not a direct result of user interaction.
+        // Opening a blank window synchronously and then updating its location is a standard workaround.
+        const newWindow = window.open('about:blank', '_blank');
+
         try {
             const response = await api.generateTelegramToken();
             if (response && response.token) {
                 const url = `https://t.me/${telegramBotUsername}?start=${response.token}`;
-                window.open(url, '_blank', 'noopener,noreferrer');
+                if (newWindow) {
+                    newWindow.location.href = url;
+                } else {
+                    // Fallback if window.open failed
+                    window.location.href = url;
+                }
             } else {
+                if (newWindow) newWindow.close();
                 alert('Не удалось получить код привязки. Попробуйте позже.');
             }
         } catch (error) {
+            if (newWindow) newWindow.close();
             console.error("Failed to generate telegram token", error);
             alert('Ошибка при подключении Telegram.');
         }
