@@ -143,6 +143,10 @@ const ReviewTask = () => {
     if (error) return <div className="text-center mt-8 text-red-500">{error}</div>;
     if (!task) return null;
 
+    const isChecklistComplete = (task.checklist || []).every(item =>
+        item.isCompleted && (!item.isPhotoRequired || item.photoUrl)
+    );
+
     return (
         <div className="max-w-6xl mx-auto space-y-6 pb-20">
             {/* Task Info Card */}
@@ -266,12 +270,25 @@ const ReviewTask = () => {
                             <h3 className="text-lg font-medium text-gray-700 mb-3">Финальный результат</h3>
 
                             {user.role === ROLES.FOREMAN && task.status === STATUSES.UNDER_REVIEW_FOREMAN ? (
-                                <PhotoUpload
-                                    currentPhoto={task.finalPhotoUrl}
-                                    onPhotoChange={handleFinalPhotoChange}
-                                    label={task.finalPhotoUrl ? "Изменить фото результата" : "Загрузить фото результата (обязательно для приемки)"}
-                                    disabled={loading}
-                                />
+                                <div className={`mt-2 p-4 rounded-xl border-2 transition-all ${isChecklistComplete ? 'bg-indigo-50 border-indigo-100' : 'bg-slate-50 border-slate-100 opacity-60'}`}>
+                                    <h3 className="text-sm font-bold text-slate-800 mb-3 flex flex-col sm:flex-row sm:items-center gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-1.5 h-4 bg-indigo-500 rounded-full"></span>
+                                            Общее фото результата
+                                        </div>
+                                        {!isChecklistComplete && (
+                                            <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full sm:ml-auto animate-pulse self-start sm:self-auto">
+                                                Завершите чек-лист для разблокировки
+                                            </span>
+                                        )}
+                                    </h3>
+                                    <PhotoUpload
+                                        currentPhoto={task.finalPhotoUrl}
+                                        onPhotoChange={handleFinalPhotoChange}
+                                        label={isChecklistComplete ? (task.finalPhotoUrl ? "Изменить фото результата" : "Загрузить фото результата (обязательно)") : "Доступно после выполнения всех пунктов"}
+                                        disabled={!isChecklistComplete || loading}
+                                    />
+                                </div>
                             ) : (
                                 task.finalPhotoUrl && (
                                     <a href={task.finalPhotoUrl} target="_blank" rel="noopener noreferrer">
