@@ -284,16 +284,6 @@ const ChecklistSection = ({ taskId, checklists, onUpdate, readOnly = false, canR
     const handlePhotoUpdate = async (itemId, photoUrl) => {
         setLoading(true);
 
-        // If photo is being cleared (null), just update local state — no upload call needed
-        if (!photoUrl) {
-            setItems(items.map(item =>
-                item.id === itemId ? { ...item, photoUrl: null } : item
-            ));
-            onUpdate?.();
-            setLoading(false);
-            return;
-        }
-
         const result = await api.updateChecklistPhoto(itemId, photoUrl);
         if (result.success) {
             // Use the real S3 URL returned from the server, not the raw base64
@@ -301,10 +291,10 @@ const ChecklistSection = ({ taskId, checklists, onUpdate, readOnly = false, canR
                 ? (result.data.photoUrl.startsWith('http') || result.data.photoUrl.startsWith('data:')
                     ? result.data.photoUrl
                     : `/files/${result.data.photoUrl}`)
-                : photoUrl;
+                : null; // If deleted or error, set to null
 
             // Auto-complete if photo is added
-            if (!items.find(i => i.id === itemId).isCompleted) {
+            if (photoUrl && !items.find(i => i.id === itemId).isCompleted) {
                 await api.toggleChecklistComplete(itemId, true);
                 setItems(items.map(item =>
                     item.id === itemId ? { ...item, photoUrl: serverPhotoUrl, isCompleted: true, remark: null } : item
@@ -314,6 +304,12 @@ const ChecklistSection = ({ taskId, checklists, onUpdate, readOnly = false, canR
                     item.id === itemId ? { ...item, photoUrl: serverPhotoUrl } : item
                 ));
             }
+            onUpdate?.();
+        } else if (!photoUrl) {
+            // Even if API fails, if we're clearing, update locally for UX
+            setItems(items.map(item =>
+                item.id === itemId ? { ...item, photoUrl: null } : item
+            ));
             onUpdate?.();
         }
         setLoading(false);
