@@ -53,7 +53,7 @@ const translateStatus = (status) => {
     return translations[status] || status;
 };
 
-const TaskCard = ({ task, userRole }) => {
+const TaskCard = ({ task, userRole, isHighlighted }) => {
     const isDeadlinePassed = new Date(task.deadline) < new Date() && task.status !== STATUSES.COMPLETED;
 
     // Determine the correct link based on user role and task status
@@ -71,15 +71,105 @@ const TaskCard = ({ task, userRole }) => {
         : 0;
 
     const isLocked = task.status === STATUSES.LOCKED;
+    const isCompleted = task.status === STATUSES.COMPLETED;
+
+    // Helper to calculate days remaining
+    const getDaysRemaining = (deadlineDate) => {
+        if (!deadlineDate) return null;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const deadline = new Date(deadlineDate);
+        deadline.setHours(0, 0, 0, 0);
+        const diffTime = deadline - today;
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    };
+
+    const daysRemaining = getDaysRemaining(task.deadline);
+
+    // Dynamic border color based on status and urgency
+    const getBorderColor = () => {
+        if (isCompleted) return 'border-l-4 border-l-emerald-500';
+        if (task.status === STATUSES.REWORK || task.status === STATUSES.REWORK_FOREMAN || task.status === STATUSES.REWORK_PM) return 'border-l-4 border-l-rose-500';
+        if (task.priority === 'HIGH' || (daysRemaining !== null && daysRemaining <= 1)) return 'border-l-4 border-l-amber-500';
+        if (isLocked) return 'border-l-4 border-l-slate-300';
+        return 'border-l-4 border-l-bauberg-blue'; // Default active
+    };
+
+    // Dynamic highlight styles based on status
+    const getHighlightStyles = () => {
+        if (!isHighlighted) return '';
+
+        if (task.status === STATUSES.REWORK_PM)
+            return 'bg-purple-100 border-purple-500 ring-4 ring-inset ring-purple-400 z-20 scale-[1.03] shadow-md';
+        if (task.status === STATUSES.REWORK || task.status === STATUSES.REWORK_FOREMAN)
+            return 'bg-rose-100 border-rose-500 ring-4 ring-inset ring-rose-400 z-20 scale-[1.03] shadow-md';
+        if (task.status === STATUSES.UNDER_REVIEW_FOREMAN || task.status === STATUSES.UNDER_REVIEW_PM)
+            return 'bg-amber-100 border-amber-500 ring-4 ring-inset ring-amber-400 z-20 scale-[1.03] shadow-md';
+
+        return 'bg-indigo-100 border-indigo-500 ring-4 ring-inset ring-indigo-400 z-20 scale-[1.03] shadow-md';
+    };
+
+    // Render Deadline Badge
+    const renderDeadlineBadge = () => {
+        if (!task.deadline) return null;
+
+        if (isCompleted) {
+            return (
+                <div className="flex items-center text-emerald-600 text-sm font-bold bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">
+                    <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                    <span>Завершено</span>
+                </div>
+            );
+        }
+
+        if (daysRemaining < 0) {
+            return (
+                <div className="flex items-center text-rose-600 text-[11px] font-black tracking-wide uppercase bg-rose-50 px-2.5 py-1 rounded-md border border-rose-200 shadow-sm animate-pulse shadow-rose-100">
+                    <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    ПРОСРОЧЕНО!
+                </div>
+            );
+        } else if (daysRemaining === 0) {
+            return (
+                <div className="flex items-center text-amber-600 text-xs font-bold bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
+                    <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    СЕГОДНЯ
+                </div>
+            );
+        } else if (daysRemaining === 1) {
+            return (
+                <div className="flex items-center text-amber-600 text-xs font-bold bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
+                    <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    ЗАВТРА
+                </div>
+            );
+        } else if (daysRemaining <= 3) {
+            return (
+                <div className="flex items-center text-amber-600 text-xs font-bold bg-amber-50/50 px-2.5 py-1 rounded-md border border-amber-100">
+                    <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    Осталось {daysRemaining} дн.
+                </div>
+            );
+        } else {
+            return (
+                <div className="flex items-center text-slate-500 text-xs font-medium bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-md">
+                    <svg className="w-4 h-4 mr-1.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    До {new Date(task.deadline).toLocaleDateString()}
+                </div>
+            );
+        }
+    };
 
     return (
         <Link
+            id={`task-card-${task.id}`}
             to={getTaskLink()}
-            className={`block relative overflow-hidden group transition-all duration-200
+            className={`block relative group transition-all duration-700 ease-out rounded-xl ${getBorderColor()}
                 ${isLocked
-                    ? 'opacity-70 bg-slate-50 border border-slate-200 rounded-xl p-5 hover:opacity-100'
-                    : 'card-premium p-5'
+                    ? 'opacity-70 bg-slate-50 border-t border-r border-b border-slate-200 p-5 hover:opacity-100'
+                    : 'card-premium p-5 border-t border-r border-b'
                 }
+                ${getHighlightStyles()}
             `}
         >
             {/* Status Badge */}
@@ -99,11 +189,11 @@ const TaskCard = ({ task, userRole }) => {
             </div>
 
             {/* Content */}
-            <div className="mb-5">
-                <div className="text-xs font-bold tracking-wider text-bauberg-sky uppercase mb-1.5 truncate">
+            <div className="mb-5 min-w-0">
+                <div className="text-xs font-bold tracking-wider text-bauberg-sky uppercase mb-1.5 break-words break-all sm:break-normal line-clamp-2">
                     {task.object}
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900 group-hover:text-bauberg-blue transition-colors leading-tight">
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900 group-hover:text-bauberg-blue transition-colors leading-tight break-words break-all sm:break-normal line-clamp-3">
                     {task.title}
                 </h3>
             </div>
@@ -119,12 +209,7 @@ const TaskCard = ({ task, userRole }) => {
                     </div>
                 )}
 
-                <div className="flex items-center text-slate-600 text-sm">
-                    <svg className={`w-4 h-4 mr-1.5 ${isDeadlinePassed ? 'text-rose-500' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    <span className={isDeadlinePassed ? 'text-rose-600 font-bold' : 'font-medium'}>
-                        {new Date(task.deadline).toLocaleDateString()}
-                    </span>
-                </div>
+                {renderDeadlineBadge()}
             </div>
 
             {/* Progress Bar (Simpler) */}

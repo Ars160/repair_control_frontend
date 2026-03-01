@@ -27,8 +27,8 @@ const SortableItem = ({ id, item, idx, onRemove }) => {
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" /></svg>
                 </div>
 
-                <span className="text-xs font-bold text-slate-400 w-5 text-center">#{idx + 1}</span>
-                <span className="flex-1 text-sm font-medium text-slate-700">{item.description}</span>
+                <span className="text-xs font-bold text-slate-400 w-5 text-center shrink-0">#{idx + 1}</span>
+                <span className="flex-1 min-w-0 text-sm font-medium text-slate-700 break-words break-all">{item.description}</span>
 
                 {item.isPhotoRequired && (
                     <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-1 rounded-lg font-bold">ФОТО</span>
@@ -44,7 +44,7 @@ const SortableItem = ({ id, item, idx, onRemove }) => {
                 </button>
             </div>
             {item.methodology && (
-                <div className="ml-10 text-xs text-slate-500 bg-white p-2 rounded border border-slate-100">
+                <div className="ml-10 text-xs text-slate-500 bg-white p-2 rounded border border-slate-100 min-w-0 break-words break-all">
                     <span className="font-bold text-slate-400 uppercase text-[9px] mr-1">Методика:</span>
                     {item.methodology}
                 </div>
@@ -306,11 +306,11 @@ const ChecklistTemplates = () => {
                                     : 'bg-white border-transparent hover:bg-slate-50 hover:border-slate-200'
                                     }`}
                             >
-                                <div className="flex justify-between items-center">
-                                    <h3 className={`font-bold text-sm ${selectedTemplate?.id === tpl.id ? 'text-indigo-700' : 'text-slate-700'}`}>{tpl.name}</h3>
+                                <div className="flex justify-between items-center gap-2">
+                                    <h3 className={`font-bold text-sm min-w-0 flex-1 break-words break-all ${selectedTemplate?.id === tpl.id ? 'text-indigo-700' : 'text-slate-700'}`}>{tpl.name}</h3>
                                     <button
                                         onClick={(e) => handleDeleteTemplate(tpl.id, e)}
-                                        className="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 p-1 text-slate-400 hover:text-red-600 transition-opacity whitespace-nowrap"
+                                        className="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 p-1 text-slate-400 hover:text-red-600 transition-opacity whitespace-nowrap shrink-0"
                                     >
                                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -332,12 +332,12 @@ const ChecklistTemplates = () => {
                 {/* Mobile Back Button */}
                 {(selectedTemplate || showCreate) && (
                     <div className="md:hidden p-4 border-b border-slate-200 bg-white flex items-center gap-3 sticky top-0 z-10">
-                        <button onClick={() => { setSelectedTemplate(null); setShowCreate(false); setIsEditing(false); }} className="p-1 -ml-1 text-slate-500">
+                        <button onClick={() => { setSelectedTemplate(null); setShowCreate(false); setIsEditing(false); }} className="p-1 -ml-1 text-slate-500 shrink-0">
                             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
-                        <span className="font-bold text-slate-800 truncate">
+                        <span className="font-bold text-slate-800 truncate min-w-0 flex-1">
                             {showCreate ? 'Новый шаблон' : selectedTemplate.name}
                         </span>
                     </div>
@@ -447,11 +447,11 @@ const ChecklistTemplates = () => {
                         ) : selectedTemplate ? (
                             <div className="animate-fadeIn">
                                 <div className="flex justify-between items-start mb-6">
-                                    <div>
-                                        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 mb-1">{selectedTemplate.name}</h1>
+                                    <div className="min-w-0 flex-1">
+                                        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 mb-1 break-words break-all">{selectedTemplate.name}</h1>
                                         <p className="text-slate-500 text-sm">Шаблон чеклиста</p>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-2 shrink-0">
                                         <button
                                             onClick={() => startEditing(selectedTemplate)}
                                             className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
@@ -472,21 +472,21 @@ const ChecklistTemplates = () => {
                                 <div className="space-y-3">
                                     {selectedTemplate.items?.map((item, idx) => (
                                         <div key={idx} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-2">
-                                            <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-4 flex-1 min-w-0">
                                                 <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xs shrink-0">
                                                     {idx + 1}
                                                 </div>
-                                                <div className="flex-1">
-                                                    <p className="font-medium text-slate-800">{item.description}</p>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="font-medium text-slate-800 break-words break-all">{item.description}</p>
                                                 </div>
                                                 {item.isPhotoRequired && (
-                                                    <span className="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg font-bold border border-indigo-100">
+                                                    <span className="shrink-0 text-[10px] bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg font-bold border border-indigo-100">
                                                         📷 Фото
                                                     </span>
                                                 )}
                                             </div>
                                             {item.methodology && (
-                                                <div className="ml-12 p-3 bg-slate-50 rounded-lg border border-slate-100 text-xs text-slate-600">
+                                                <div className="ml-12 p-3 bg-slate-50 rounded-lg border border-slate-100 text-xs text-slate-600 min-w-0 break-words break-all">
                                                     <span className="font-bold text-slate-400 uppercase text-[10px] block mb-1">Методика:</span>
                                                     {item.methodology}
                                                 </div>

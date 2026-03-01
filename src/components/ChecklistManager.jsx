@@ -173,7 +173,7 @@ const ChecklistManager = ({ taskId, onUpdate, initialItems = [] }) => {
             <div className="flex justify-between items-center mb-1">
                 <label className="text-[10px] font-bold text-slate-500 uppercase">Чек-лист</label>
                 <select
-                    className="text-xs border-none bg-indigo-50 text-indigo-600 font-bold focus:ring-0 cursor-pointer hover:bg-indigo-100 rounded px-2 py-0.5 transition-colors"
+                    className="text-xs border-none bg-indigo-50 text-indigo-600 font-bold focus:ring-0 cursor-pointer hover:bg-indigo-100 rounded px-2 py-0.5 transition-colors max-w-[130px] sm:max-w-xs truncate"
                     onChange={handleTemplateSelect}
                     defaultValue=""
                     disabled={loading}
@@ -181,7 +181,9 @@ const ChecklistManager = ({ taskId, onUpdate, initialItems = [] }) => {
                     <option value="" disabled>Загрузить шаблон...</option>
                     <option value="custom" className="font-bold text-orange-600">-- Пустой (сбросить) --</option>
                     {templates.map(t => (
-                        <option key={t.id} value={t.id}>{t.name}</option>
+                        <option key={t.id} value={t.id} title={t.name}>
+                            {t.name.length > 35 ? t.name.substring(0, 35) + '...' : t.name}
+                        </option>
                     ))}
                 </select>
             </div>
@@ -189,10 +191,10 @@ const ChecklistManager = ({ taskId, onUpdate, initialItems = [] }) => {
             <div className="space-y-1 mb-2">
                 {items.map((item, index) => (
                     <div key={item.id} className="bg-white rounded-lg border border-slate-100 group relative overflow-hidden">
-                        <div className="flex gap-1 items-center p-1.5">
-                            <span className="text-[10px] text-slate-400">#{index + 1}</span>
-                            <span className="flex-1 text-[11px] truncate" title={item.description}>{item.description}</span>
-                            <div className="flex items-center gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                        <div className="flex gap-1 items-start p-1.5">
+                            <span className="text-[10px] text-slate-400 mt-0.5 shrink-0">#{index + 1}</span>
+                            <span className="flex-1 min-w-0 text-[11px] break-words break-all" title={item.description}>{item.description}</span>
+                            <div className="flex items-center gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity shrink-0">
                                 <label className="flex items-center gap-0.5 cursor-pointer">
                                     <input
                                         type="checkbox"
@@ -225,7 +227,7 @@ const ChecklistManager = ({ taskId, onUpdate, initialItems = [] }) => {
                         </div>
                         {item.methodology && editingMethodology !== item.id && (
                             <div className="px-2 pb-1.5 -mt-0.5">
-                                <p className="text-[9px] text-indigo-600 bg-indigo-50 px-2 py-1 rounded truncate" title={item.methodology}>📋 {item.methodology}</p>
+                                <p className="text-[9px] text-indigo-600 bg-indigo-50 px-2 py-1 rounded break-words break-all" title={item.methodology}>📋 {item.methodology}</p>
                             </div>
                         )}
                         {editingMethodology === item.id && (

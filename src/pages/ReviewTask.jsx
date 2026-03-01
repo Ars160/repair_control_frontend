@@ -155,20 +155,20 @@ const ReviewTask = () => {
 
                 <div className="relative z-10">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
-                        <div>
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-700 mb-2 uppercase tracking-wider">
+                        <div className="min-w-0 flex-1">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-700 mb-2 uppercase tracking-wider break-words break-all sm:break-normal line-clamp-2">
                                 {task.projectName || 'Проект не указан'}
                             </span>
                             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 leading-tight">
+                                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 leading-tight break-words break-all sm:break-normal line-clamp-3">
                                     {task.title}
                                 </h1>
-                                <span className="inline-block self-start text-[10px] font-bold text-slate-400 border border-slate-200 rounded px-2 py-0.5 uppercase tracking-widest">
+                                <span className="inline-block self-start shrink-0 text-[10px] font-bold text-slate-400 border border-slate-200 rounded px-2 py-0.5 uppercase tracking-widest">
                                     Проверка
                                 </span>
                             </div>
                         </div>
-                        <div className={`self-start px-3 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase ${task.status === STATUSES.COMPLETED ? 'bg-green-100 text-green-700' :
+                        <div className={`self-start shrink-0 px-3 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase ${task.status === STATUSES.COMPLETED ? 'bg-green-100 text-green-700' :
                             task.status === STATUSES.ACTIVE ? 'bg-blue-100 text-blue-700' :
                                 task.status === STATUSES.REWORK ? 'bg-red-100 text-red-700' :
                                     'bg-gray-100 text-gray-700'
@@ -183,21 +183,21 @@ const ReviewTask = () => {
                                 <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                 <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Расположение</p>
                             </div>
-                            <div className="ml-2 space-y-2">
-                                <div className="flex items-center gap-2">
+                            <div className="ml-2 space-y-2 min-w-0">
+                                <div className="flex sm:items-center flex-col sm:flex-row gap-0.5 sm:gap-2">
                                     <span className="text-[10px] font-bold text-slate-400 uppercase w-20 flex-shrink-0">Раздел</span>
-                                    <span className="text-sm font-semibold text-slate-800">{task.objectName}</span>
+                                    <span className="text-sm font-semibold text-slate-800 break-words break-all sm:break-normal line-clamp-2">{task.objectName}</span>
                                 </div>
                                 {task.objectAddress && (
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex sm:items-center flex-col sm:flex-row gap-0.5 sm:gap-2">
                                         <span className="text-[10px] font-bold text-slate-400 uppercase w-20 flex-shrink-0">Адрес</span>
-                                        <span className="text-sm text-slate-600">{task.objectAddress}</span>
+                                        <span className="text-sm text-slate-600 truncate">{task.objectAddress}</span>
                                     </div>
                                 )}
                                 {task.subObjectName && (
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex sm:items-center flex-col sm:flex-row gap-0.5 sm:gap-2">
                                         <span className="text-[10px] font-bold text-indigo-400 uppercase w-20 flex-shrink-0">Подраздел</span>
-                                        <span className="text-sm font-semibold text-indigo-600">{task.subObjectName}</span>
+                                        <span className="text-sm font-semibold text-indigo-600 break-words break-all sm:break-normal line-clamp-2">{task.subObjectName}</span>
                                     </div>
                                 )}
                             </div>
@@ -324,7 +324,7 @@ const ReviewTask = () => {
                 </div>
 
                 {/* History/Notes */}
-                <ApprovalHistory approvals={task.approvals} />
+                <ApprovalHistory approvals={[...(task.approvals || [])].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))} />
 
                 {(task.rejectionReason || task.foremanNote) && (
                     <div className="space-y-4 mb-6">

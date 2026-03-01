@@ -166,11 +166,11 @@ const WorkTemplates = () => {
                                     : 'bg-white border-transparent hover:bg-slate-50 hover:border-slate-200'
                                     }`}
                             >
-                                <div className="flex justify-between items-center">
-                                    <h3 className={`font-bold text-sm ${selectedTemplate?.id === tpl.id ? 'text-orange-700' : 'text-slate-700'}`}>{tpl.name}</h3>
+                                <div className="flex justify-between items-center gap-2">
+                                    <h3 className={`font-bold text-sm min-w-0 flex-1 break-words break-all ${selectedTemplate?.id === tpl.id ? 'text-orange-700' : 'text-slate-700'}`}>{tpl.name}</h3>
                                     <button
                                         onClick={(e) => { e.stopPropagation(); handleDeleteTemplate(tpl.id); }}
-                                        className="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 p-1 text-slate-400 hover:text-red-600 transition-opacity"
+                                        className="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 p-1 text-slate-400 hover:text-red-600 transition-opacity shrink-0"
                                     >
                                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -193,38 +193,38 @@ const WorkTemplates = () => {
                     <>
                         {/* Mobile Back Button */}
                         <div className="md:hidden p-4 border-b border-slate-200 bg-white flex items-center gap-3 sticky top-0 z-10">
-                            <button onClick={() => setSelectedTemplate(null)} className="p-1 -ml-1 text-slate-500">
+                            <button onClick={() => setSelectedTemplate(null)} className="p-1 -ml-1 text-slate-500 shrink-0">
                                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                 </svg>
                             </button>
-                            <span className="font-bold text-slate-800 truncate">{selectedTemplate.name}</span>
+                            <span className="font-bold text-slate-800 truncate min-w-0 flex-1">{selectedTemplate.name}</span>
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10">
                             <div className="max-w-3xl mx-auto space-y-6">
                                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
-                                    <div>
+                                    <div className="min-w-0 flex-1">
                                         {isRenaming ? (
                                             <div className="flex gap-2 items-center mb-1">
                                                 <input
-                                                    className="text-2xl sm:text-3xl font-extrabold text-slate-800 border-b border-slate-300 focus:border-indigo-500 outline-none bg-transparent w-full"
+                                                    className="text-2xl sm:text-3xl font-extrabold text-slate-800 border-b border-slate-300 focus:border-indigo-500 outline-none bg-transparent w-full break-words break-all"
                                                     value={renameValue}
                                                     onChange={(e) => setRenameValue(e.target.value)}
                                                 />
-                                                <button onClick={handleRenameTemplate} className="p-1 text-green-600 hover:bg-green-50 rounded">
+                                                <button onClick={handleRenameTemplate} className="p-1 text-green-600 hover:bg-green-50 rounded shrink-0">
                                                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                                                 </button>
-                                                <button onClick={() => setIsRenaming(false)} className="p-1 text-slate-400 hover:bg-slate-100 rounded">
+                                                <button onClick={() => setIsRenaming(false)} className="p-1 text-slate-400 hover:bg-slate-100 rounded shrink-0">
                                                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                                                 </button>
                                             </div>
                                         ) : (
-                                            <div className="flex items-center gap-2 group/title">
-                                                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800">{selectedTemplate.name}</h1>
+                                            <div className="flex items-center gap-2 group/title min-w-0">
+                                                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 break-words break-all">{selectedTemplate.name}</h1>
                                                 <button
                                                     onClick={() => { setRenameValue(selectedTemplate.name); setIsRenaming(true); }}
-                                                    className="opacity-100 lg:opacity-0 lg:group-hover/title:opacity-100 p-1.5 text-slate-400 hover:text-indigo-600 transition-all font-normal"
+                                                    className="opacity-100 lg:opacity-0 lg:group-hover/title:opacity-100 p-1.5 text-slate-400 hover:text-indigo-600 transition-all font-normal shrink-0"
                                                 >
                                                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                                 </button>
@@ -262,14 +262,16 @@ const WorkTemplates = () => {
                                             <div>
                                                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Шаблон чеклиста</label>
                                                 <select
-                                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none"
+                                                    className="w-full max-w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none truncate"
                                                     value={newTask.checklistTemplateId}
                                                     onChange={e => setNewTask({ ...newTask, checklistTemplateId: e.target.value })}
                                                     required
                                                 >
                                                     <option value="">Выберите чеклист...</option>
                                                     {checklistTemplates.map(ct => (
-                                                        <option key={ct.id} value={ct.id}>{ct.name}</option>
+                                                        <option key={ct.id} value={ct.id} title={ct.name}>
+                                                            {ct.name.length > 35 ? ct.name.substring(0, 35) + '...' : ct.name}
+                                                        </option>
                                                     ))}
                                                 </select>
                                                 <p className="text-xs text-slate-400 mt-2">
@@ -287,21 +289,21 @@ const WorkTemplates = () => {
                                     {(selectedTemplate.taskTemplates || [])
                                         .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
                                         .map((task, idx) => (
-                                            <div key={task.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all flex items-center justify-between group">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xs ring-2 ring-white">
+                                            <div key={task.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all flex items-center justify-between gap-4 group">
+                                                <div className="flex items-center gap-4 flex-1 min-w-0">
+                                                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xs ring-2 ring-white shrink-0">
                                                         {idx + 1}
                                                     </div>
-                                                    <div>
-                                                        <h4 className="font-bold text-slate-800 text-base sm:text-lg">{task.name}</h4>
-                                                        <div className="flex items-center gap-2 mt-1">
-                                                            <span className="text-xs text-slate-500 font-medium bg-slate-100 px-2 py-1 rounded">
+                                                    <div className="min-w-0 flex-1">
+                                                        <h4 className="font-bold text-slate-800 text-base sm:text-lg break-words break-all">{task.name}</h4>
+                                                        <div className="flex items-center gap-2 mt-1 min-w-0">
+                                                            <span className="text-xs text-slate-500 font-medium bg-slate-100 px-2 py-1 rounded truncate">
                                                                 Чеклист: {task.checklistTemplate?.name || 'Не указан'}
                                                             </span>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                                                <div className="flex items-center opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity shrink-0">
                                                     <button
                                                         onClick={() => handleDeleteTaskTemplate(task.id)}
                                                         className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"

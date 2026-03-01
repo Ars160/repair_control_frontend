@@ -43,21 +43,25 @@ const ProjectDetails = () => {
         <div className="space-y-10 pb-24 animate-fadeIn">
             {/* Premium Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="flex items-start gap-5">
+                <div className="flex items-start gap-4 sm:gap-5 w-full">
                     <button
                         onClick={() => navigate('/dashboard')}
-                        className="p-3 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition-colors shadow-sm mt-1"
+                        className="p-3 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition-colors shadow-sm mt-1 shrink-0"
                     >
                         <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7"></path>
                         </svg>
                     </button>
-                    <div>
-                        <div className="flex items-center gap-3 mb-1">
-                            <h1 className="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">{project.name}</h1>
-                            <span className="bg-indigo-50 text-indigo-600 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-indigo-100">В РАБОТЕ</span>
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-center flex-wrap gap-2 sm:gap-3 mb-1">
+                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-800 tracking-tight break-words break-all sm:break-normal">
+                                {project.name}
+                            </h1>
+                            <span className="shrink-0 bg-indigo-50 text-indigo-600 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-indigo-100 mt-1 sm:mt-0">В РАБОТЕ</span>
                         </div>
-                        <p className="text-slate-500 font-medium max-w-xl">{project.description || 'Основные строительные и отделочные работы на объекте в пос. Байберг'}</p>
+                        <p className="text-sm sm:text-base text-slate-500 font-medium max-w-xl break-words line-clamp-2 md:line-clamp-none">
+                            {project.description || 'Основные строительные и отделочные работы на объекте в пос. Байберг'}
+                        </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-6 bg-white p-4 rounded-3xl border border-slate-100 shadow-sm self-start md:self-auto">
@@ -125,16 +129,16 @@ const ObjectCard = ({ object }) => {
                 className="p-5 sm:p-6 flex justify-between items-center cursor-pointer hover:bg-slate-50/50 transition-colors"
                 onClick={loadSubObjects}
             >
-                <div className="flex items-center gap-5">
+                <div className="flex items-center gap-5 min-w-0 flex-1">
                     <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100 ${expanded ? 'bg-indigo-600 text-white' : ''} transition-colors duration-300`}>
-                        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-7 h-7 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                         </svg>
                     </div>
-                    <div>
-                        <h3 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight">{object.name}</h3>
-                        <div className="flex items-center gap-3 mt-1">
-                            {object.address && <p className="text-xs text-slate-500 flex items-center gap-1 font-medium">
+                    <div className="min-w-0 flex-1">
+                        <h3 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight break-words break-all sm:break-normal line-clamp-2">{object.name}</h3>
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1 min-w-0">
+                            {object.address && <p className="text-xs text-slate-500 flex items-center gap-1 font-medium min-w-0 truncate">
                                 <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                 {object.address}
                             </p>}
@@ -221,11 +225,13 @@ const SubObjectCard = ({ subObject }) => {
 
     return (
         <div className="bg-white rounded-xl p-4 border border-slate-200">
-            <h4 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
-                <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
-                {subObject.name}
-                <span className="text-xs text-slate-400 ml-auto">{tasks.length} задач</span>
-            </h4>
+            <div className="font-bold text-slate-700 mb-4 flex items-start sm:items-center gap-2">
+                <div className="w-2 h-2 bg-indigo-500 rounded-full mt-2 sm:mt-0 shrink-0"></div>
+                <h4 className="min-w-0 flex-1 break-words break-all sm:break-normal pr-2">
+                    {subObject.name}
+                </h4>
+                <span className="text-xs text-slate-400 ml-auto shrink-0 whitespace-nowrap">{tasks.length} задач</span>
+            </div>
 
             {tasks.length > 0 ? (
                 <div className="space-y-2">
@@ -281,7 +287,24 @@ const TaskCard = ({ task, isParallel = false }) => {
         default: { bg: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-700', badge: 'bg-slate-100', dot: 'bg-slate-400' }
     };
 
-    const config = statusConfig[task.status] || statusConfig.default;
+    const baseConfig = statusConfig[task.status] || statusConfig.default;
+
+    // Calculate if task is overdue
+    let isOverdue = false;
+    if (task.deadline && task.status !== STATUSES.COMPLETED) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const deadlineDate = new Date(task.deadline);
+        deadlineDate.setHours(0, 0, 0, 0);
+        isOverdue = deadlineDate < today;
+    }
+
+    // Override colors if overdue, unless it's completed
+    const config = isOverdue ? {
+        ...baseConfig,
+        border: 'border-rose-400',
+        bg: 'bg-rose-50/80',
+    } : baseConfig;
 
     // Get assignee info
     const hasAssignees = (task.assigneeNames && task.assigneeNames.length > 0) || (task.assigneeIds && task.assigneeIds.length > 0);
@@ -346,12 +369,19 @@ const TaskCard = ({ task, isParallel = false }) => {
                 </div>
 
                 {task.deadline && (
-                    <div className="flex items-center gap-1 text-[10px] text-slate-500">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                        {new Date(task.deadline).toLocaleDateString('ru-RU')}
-                    </div>
+                    isOverdue ? (
+                        <div className="flex items-center gap-1.5 mt-2 bg-rose-100/80 border border-rose-200 text-rose-700 px-2 py-1 rounded-md w-fit animate-pulse shadow-sm">
+                            <AlertIcon />
+                            <span className="text-[10px] font-black uppercase tracking-wider">Просрочено: {new Date(task.deadline).toLocaleDateString('ru-RU')}</span>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-1 text-[10px] text-slate-500 mt-2">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            {new Date(task.deadline).toLocaleDateString('ru-RU')}
+                        </div>
+                    )
                 )}
             </div>
         </div>

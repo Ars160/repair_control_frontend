@@ -561,22 +561,22 @@ const EstimatorDashboard = () => {
                             className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer bg-gradient-to-r from-slate-50 to-white border-b border-slate-100 group"
                             onClick={() => toggleProject(project.id)}
                         >
-                            <div className="flex items-center gap-3 sm:gap-4">
+                            <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
                                 <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors shrink-0 ${expandedProjects[project.id] ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500'}`}>
                                     <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                                 </div>
-                                <div className="min-w-0">
-                                    <div className="flex items-center gap-2">
-                                        <h2 className="text-lg sm:text-xl font-bold text-slate-800 group-hover:text-indigo-600 transition-colors truncate">{project.name}</h2>
-                                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-tight ${project.status === 'PUBLISHED' ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-600'
+                                <div className="min-w-0 flex-1">
+                                    <div className="flex items-start sm:items-center flex-col sm:flex-row gap-2">
+                                        <h2 className="text-lg sm:text-xl font-bold text-slate-800 group-hover:text-indigo-600 transition-colors break-words break-all sm:break-normal line-clamp-2">{project.name}</h2>
+                                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-tight shrink-0 self-start sm:self-auto ${project.status === 'PUBLISHED' ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-600'
                                             }`}>
                                             {project.status === 'PUBLISHED' ? 'Опубликован' : 'Черновик'}
                                         </span>
                                     </div>
-                                    <p className="text-xs sm:text-sm text-slate-500 truncate">{project.description || 'Нет описания'}</p>
+                                    <p className="text-xs sm:text-sm text-slate-500 truncate mt-1">{project.description || 'Нет описания'}</p>
                                 </div>
                             </div>
-                            <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 border-t sm:border-t-0 pt-3 sm:pt-0">
+                            <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 border-t sm:border-t-0 pt-3 sm:pt-0 shrink-0">
                                 <div className="flex items-center gap-1 sm:gap-2">
                                     <button onClick={(e) => { e.stopPropagation(); startEditProject(project); }} className="p-2 text-slate-400 hover:text-indigo-600 transition-colors" title="Редактировать">
                                         <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
@@ -675,16 +675,16 @@ const EstimatorDashboard = () => {
                                                 className="px-4 py-3 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition-colors"
                                                 onClick={() => toggleObject(object.id)}
                                             >
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-500 flex items-center justify-center">
+                                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                    <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-500 flex items-center justify-center shrink-0">
                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                                                     </div>
-                                                    <div>
-                                                        <h4 className="font-semibold text-slate-800">{object.name}</h4>
-                                                        {object.address && <p className="text-xs text-slate-400">{object.address}</p>}
+                                                    <div className="min-w-0 flex-1">
+                                                        <h4 className="font-semibold text-slate-800 break-words break-all sm:break-normal line-clamp-2">{object.name}</h4>
+                                                        {object.address && <p className="text-xs text-slate-400 truncate">{object.address}</p>}
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-2 shrink-0">
                                                     <button onClick={(e) => startEditObject(e, object, project.id)} className="p-1 text-slate-400 hover:text-indigo-600" title="Ред.">
                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                                     </button>
@@ -716,7 +716,7 @@ const EstimatorDashboard = () => {
 
                                                     {showSubObjectForm === object.id && (
                                                         <form onSubmit={(e) => handleCreateSubObject(e, object.id)} className="mb-3 flex flex-col sm:flex-row gap-2 relative items-start sm:items-center">
-                                                            <div className="flex-1 w-full space-y-2 sm:space-y-0 sm:flex sm:gap-2">
+                                                            <div className="flex-1 min-w-0 w-full space-y-2 sm:space-y-0 sm:flex sm:gap-2">
                                                                 <input
                                                                     className={`w-full sm:flex-1 border-slate-200 rounded-lg text-sm px-3 py-1.5 focus:ring-indigo-500 focus:border-indigo-500 ${editingSubObjectId ? 'border-orange-200 bg-orange-50' : ''}`}
                                                                     placeholder="Название (напр. Кухня, Этаж 1)"
@@ -726,13 +726,15 @@ const EstimatorDashboard = () => {
                                                                 />
                                                                 {!editingSubObjectId && (
                                                                     <select
-                                                                        className="w-full sm:w-48 border-slate-200 rounded-lg text-sm px-3 py-1.5 focus:ring-indigo-500 focus:border-indigo-500 text-slate-600"
+                                                                        className="w-full sm:w-48 max-w-full border-slate-200 rounded-lg text-sm px-3 py-1.5 focus:ring-indigo-500 focus:border-indigo-500 text-slate-600 truncate"
                                                                         value={newSubObject.templateId}
                                                                         onChange={e => setNewSubObject({ ...newSubObject, templateId: e.target.value })}
                                                                     >
                                                                         <option value="">Без шаблона</option>
                                                                         {subObjectTemplates.map(t => (
-                                                                            <option key={t.id} value={t.id}>{t.name}</option>
+                                                                            <option key={t.id} value={t.id} title={t.name}>
+                                                                                {t.name.length > 35 ? t.name.substring(0, 35) + '...' : t.name}
+                                                                            </option>
                                                                         ))}
                                                                     </select>
                                                                 )}
@@ -755,8 +757,8 @@ const EstimatorDashboard = () => {
                                                                     className="flex justify-between items-center cursor-pointer pb-2 border-b border-slate-100 mb-2"
                                                                     onClick={() => toggleSubObject(subObject.id)}
                                                                 >
-                                                                    <span className="font-medium text-slate-700 text-sm">{subObject.name}</span>
-                                                                    <div className="flex items-center gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                                                                    <span className="font-medium text-slate-700 text-sm break-words break-all sm:break-normal flex-1 min-w-0 pr-2">{subObject.name}</span>
+                                                                    <div className="flex items-center gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity shrink-0">
                                                                         <button onClick={(e) => startEditSubObject(e, subObject, object.id)} className="text-slate-400 hover:text-indigo-600" title="Ред.">
                                                                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                                                         </button>
@@ -896,14 +898,16 @@ const EstimatorDashboard = () => {
                                                                                 <div className="space-y-1 pt-1">
                                                                                     <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest px-1">Выбрать предыдущую задачу</label>
                                                                                     <select
-                                                                                        className="w-full border border-slate-300 rounded-xl text-xs px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none font-medium"
+                                                                                        className="w-full max-w-full border border-slate-300 rounded-xl text-xs px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none font-medium truncate"
                                                                                         value={newTask.placementTargetId}
                                                                                         onChange={e => setNewTask({ ...newTask, placementTargetId: e.target.value })}
                                                                                         required
                                                                                     >
                                                                                         <option value="">Выберите задачу...</option>
                                                                                         {subObjectTasks[subObject.id]?.map(t => (
-                                                                                            <option key={t.id} value={t.id}>{t.title}</option>
+                                                                                            <option key={t.id} value={t.id} title={t.title}>
+                                                                                                {t.title.length > 35 ? t.title.substring(0, 35) + '...' : t.title}
+                                                                                            </option>
                                                                                         ))}
                                                                                     </select>
                                                                                 </div>
@@ -932,6 +936,7 @@ const EstimatorDashboard = () => {
                                                                             'UNDER_REVIEW_PM': { label: 'У ПМ', cls: 'bg-indigo-50 text-indigo-600 border-indigo-100' },
                                                                             'REWORK_FOREMAN': { label: 'Доработка', cls: 'bg-orange-50 text-orange-600 border-orange-100' },
                                                                             'REWORK_PM': { label: 'Доработка (ПМ)', cls: 'bg-red-50 text-red-600 border-red-100' },
+                                                                            'LOCKED': { label: 'В очереди', cls: 'bg-slate-50 text-slate-500 border-slate-200' },
                                                                         };
                                                                         return map[status] || { label: status, cls: 'bg-yellow-50 text-yellow-600 border-yellow-100' };
                                                                     };
@@ -939,19 +944,19 @@ const EstimatorDashboard = () => {
                                                                         const badge = getStatusBadge(task.status);
                                                                         return (
                                                                             <div key={task.id} className={`flex justify-between items-center p-2.5 rounded-xl border transition-all group ${task.status === 'COMPLETED' ? 'bg-green-50/30 border-green-100/50 opacity-70' : 'bg-slate-50/50 border-slate-100 hover:bg-white hover:shadow-md hover:border-indigo-100'}`}>
-                                                                                <div className="flex flex-col gap-0.5 max-w-[70%]">
-                                                                                    <span className={`text-[11px] font-semibold truncate ${task.status === 'COMPLETED' ? 'text-green-700 line-through' : 'text-slate-700'}`}>{task.title}</span>
-                                                                                    {task.deadline && <span className="text-[9px] text-slate-400 font-medium">До {new Date(task.deadline).toLocaleDateString()}</span>}
+                                                                                <div className="flex flex-col gap-0.5 flex-1 min-w-0 pr-2">
+                                                                                    <span className={`text-[11px] font-semibold break-words break-all ${task.status === 'COMPLETED' ? 'text-green-700 line-through' : 'text-slate-700'}`}>{task.title}</span>
+                                                                                    {task.deadline && <span className="text-[9px] text-slate-400 font-medium shrink-0">До {new Date(task.deadline).toLocaleDateString()}</span>}
                                                                                 </div>
-                                                                                <div className="flex items-center gap-1.5">
-                                                                                    <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold border shadow-sm ${badge.cls}`}>
+                                                                                <div className="flex items-center gap-1.5 shrink-0">
+                                                                                    <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold border shadow-sm ${badge.cls} shrink-0`}>
                                                                                         {badge.label}
                                                                                     </span>
                                                                                     <div className="flex items-center gap-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                                                                                        <button onClick={(e) => startEditTask(e, task, subObject.id, project.id)} className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded" title="Редактировать">
+                                                                                        <button onClick={(e) => startEditTask(e, task, subObject.id, project.id)} className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded shrink-0" title="Редактировать">
                                                                                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                                                                         </button>
-                                                                                        <button onClick={(e) => handleDeleteTask(e, task.id, subObject.id)} className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded" title="Удалить">
+                                                                                        <button onClick={(e) => handleDeleteTask(e, task.id, subObject.id)} className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded shrink-0" title="Удалить">
                                                                                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                                                                         </button>
                                                                                     </div>

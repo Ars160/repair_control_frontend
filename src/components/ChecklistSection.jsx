@@ -71,11 +71,11 @@ const ChecklistItem = ({
                                 </span>
                             )}
                         </div>
-                        <p className={`text-base font-semibold leading-snug transition-colors ${item.isCompleted ? 'text-slate-500 line-through decoration-slate-300' : 'text-slate-800'}`}>
+                        <p className={`text-base font-semibold leading-snug transition-colors break-words break-all sm:break-normal line-clamp-3 md:line-clamp-none ${item.isCompleted ? 'text-slate-500 line-through decoration-slate-300' : 'text-slate-800'}`}>
                             {item.description}
                         </p>
                         {item.methodology && (
-                            <div className="mt-2">
+                            <div className="mt-2 min-w-0">
                                 <button
                                     onClick={() => setShowMethodology(!showMethodology)}
                                     className="text-[10px] font-bold text-indigo-500 hover:text-indigo-700 uppercase tracking-wider flex items-center gap-1 transition-colors"
@@ -91,7 +91,7 @@ const ChecklistItem = ({
                                     {showMethodology ? 'Скрыть методику' : 'Показать методику'}
                                 </button>
                                 {showMethodology && (
-                                    <div className="mt-1 text-xs text-slate-600 bg-slate-50/80 p-3 rounded-lg border border-slate-100 animate-fadeIn leading-relaxed">
+                                    <div className="mt-1 text-xs text-slate-600 bg-slate-50/80 p-3 rounded-lg border border-slate-100 animate-fadeIn leading-relaxed break-words break-all sm:break-normal">
                                         {item.methodology}
                                     </div>
                                 )}

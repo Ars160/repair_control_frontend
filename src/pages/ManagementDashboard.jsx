@@ -97,36 +97,61 @@ const ManagementDashboard = ({ user }) => {
             </div>
 
             {/* Stat Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard
-                    title="Общий прогресс"
-                    value={`${stats.progress}%`}
-                    subtitle="Все проекты"
-                    icon={<ChartIcon />}
-                    color="indigo"
-                />
-                <StatCard
-                    title="На проверке ПМ"
-                    value={stats.pendingPM}
-                    subtitle="Требуют внимания"
-                    icon={<ReviewIcon />}
-                    color="amber"
-                    pulse={stats.pendingPM > 0}
-                />
-                <StatCard
-                    title="Доработки"
-                    value={stats.rework}
-                    subtitle="Исправляются"
-                    icon={<ReworkIcon />}
-                    color="rose"
-                />
-                <StatCard
-                    title="Всего задач"
-                    value={stats.total}
-                    subtitle="По всем объектам"
-                    icon={<TaskIcon />}
-                    color="slate"
-                />
+            {/* Review Queue (Elevated to Top) */}
+            <div className="bg-amber-50/50 rounded-2xl shadow-sm border border-amber-200/60 p-5 sm:p-6 mb-8">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold text-slate-800 flex items-center gap-3">
+                        <div className="p-2 bg-amber-100 text-amber-600 rounded-xl">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        Очередь проверки
+                    </h2>
+                    {stats.pendingPM > 0 && (
+                        <div className="flex items-center gap-2">
+                            <span className="relative flex h-3 w-3">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                            </span>
+                            <span className="text-sm font-bold text-amber-600">{stats.pendingPM} задач ждут</span>
+                        </div>
+                    )}
+                </div>
+
+                {urgentTasks.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {urgentTasks.map(task => (
+                            <div
+                                key={task.id}
+                                onClick={() => navigate(`/review/${task.id}`)}
+                                className="p-4 bg-white hover:bg-amber-50 rounded-xl border border-slate-200 hover:border-amber-300 cursor-pointer transition-all group shadow-sm hover:shadow-md"
+                            >
+                                <div className="flex justify-between items-start mb-2">
+                                    <h4 className="text-sm font-bold text-slate-800 group-hover:text-amber-700 transition-colors line-clamp-2 pr-2">{task.title}</h4>
+                                </div>
+                                <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-50">
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate max-w-[60%]">{task.objectName}</p>
+                                    <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded flex items-center gap-1">
+                                        <svg className="w-3 h-3 block sm:hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        {new Date(task.deadline).toLocaleDateString()}
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center py-6 bg-white/50 rounded-xl border border-dashed border-slate-200">
+                        <div className="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mb-2">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                        <p className="text-sm font-bold text-slate-500">Отличная работа! Нет задач на проверку.</p>
+                    </div>
+                )}
+
+                {stats.pendingPM > 5 && (
+                    <button className="w-full mt-4 py-2 text-sm font-bold text-amber-600 hover:text-amber-700 hover:bg-amber-100/50 rounded-xl transition-colors">
+                        Показать все ({stats.pendingPM})
+                    </button>
+                )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -163,46 +188,7 @@ const ManagementDashboard = ({ user }) => {
 
                 {/* Sidebar: Reviews/Activity */}
                 <div className="space-y-8">
-                    {/* Review Queue */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-                        <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center justify-between">
-                            Очередь проверки
-                            {stats.pendingPM > 0 && (
-                                <span className="bg-amber-100 text-amber-600 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">Срочно</span>
-                            )}
-                        </h2>
-
-                        <div className="space-y-3">
-                            {urgentTasks.length > 0 ? (
-                                urgentTasks.map(task => (
-                                    <div
-                                        key={task.id}
-                                        onClick={() => navigate(`/review/${task.id}`)}
-                                        className="p-3 bg-slate-50 hover:bg-indigo-50 rounded-xl border border-transparent hover:border-indigo-100 cursor-pointer transition-all group"
-                                    >
-                                        <div className="flex justify-between items-start mb-1">
-                                            <h4 className="text-sm font-semibold text-slate-700 group-hover:text-indigo-600 transition-colors line-clamp-1">{task.title}</h4>
-                                            <span className="text-[10px] text-slate-400">{new Date(task.deadline).toLocaleDateString()}</span>
-                                        </div>
-                                        <p className="text-[10px] text-slate-500 uppercase tracking-tight">{task.objectName}</p>
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="text-center py-10">
-                                    <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                                        <svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                                    </div>
-                                    <p className="text-sm text-slate-400">Нет задач на проверку</p>
-                                </div>
-                            )}
-                        </div>
-
-                        {stats.pendingPM > 5 && (
-                            <button className="w-full mt-4 py-2 text-xs font-semibold text-indigo-600 hover:text-indigo-700 text-center">
-                                Показать все ({stats.pendingPM})
-                            </button>
-                        )}
-                    </div>
+                    {/* The Review Queue block was moved to the very top */}
 
                     {/* Status Breakdown Mini Chart */}
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
@@ -255,7 +241,10 @@ const ProjectCard = ({ project }) => {
     const navigate = useNavigate();
 
     return (
-        <div className="card-premium overflow-hidden group">
+        <div
+            className="card-premium overflow-hidden group cursor-pointer hover:ring-2 hover:ring-indigo-500/50 hover:shadow-xl transition-all duration-300"
+            onClick={() => navigate(`/project/${project.id}`)}
+        >
             <div className="p-5 sm:p-7">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 mb-6">
                     <div className="flex items-center gap-5">
@@ -321,15 +310,9 @@ const ProjectCard = ({ project }) => {
                         </div>
                     </div>
 
-                    <button
-                        onClick={() => navigate(`/project/${project.id}`)}
-                        className="px-6 py-3 bg-slate-900 text-white rounded-2xl font-bold hover:bg-indigo-600 transition-all duration-300 flex items-center gap-2 shadow-lg shadow-slate-900/10 hover:shadow-indigo-500/20"
-                    >
-                        Управление
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-                        </svg>
-                    </button>
+                    <div className="text-xs font-bold text-slate-400 tracking-widest uppercase">
+                        Нажмите, чтобы открыть проект
+                    </div>
                 </div>
             </div>
         </div>

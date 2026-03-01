@@ -140,11 +140,11 @@ const SubObjectTemplateManager = ({ onClose }) => {
                                             : 'bg-white border-slate-200 hover:border-indigo-300 hover:shadow-sm'
                                             }`}
                                     >
-                                        <div className="flex justify-between items-center">
-                                            <h3 className={`font-bold ${selectedTemplate?.id === tpl.id ? 'text-indigo-700' : 'text-slate-700'}`}>{tpl.name}</h3>
+                                        <div className="flex justify-between items-center gap-2">
+                                            <h3 className={`font-bold min-w-0 flex-1 break-words break-all ${selectedTemplate?.id === tpl.id ? 'text-indigo-700' : 'text-slate-700'}`}>{tpl.name}</h3>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); handleDeleteTemplate(tpl.id); }}
-                                                className="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                className="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all shrink-0"
                                             >
                                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -165,13 +165,13 @@ const SubObjectTemplateManager = ({ onClose }) => {
                         {selectedTemplate ? (
                             <div className="max-w-3xl mx-auto space-y-6">
                                 <div className="flex justify-between items-end">
-                                    <div>
+                                    <div className="min-w-0 flex-1">
                                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Выбранный шаблон</h3>
-                                        <h1 className="text-3xl font-extrabold text-slate-800">{selectedTemplate.name}</h1>
+                                        <h1 className="text-3xl font-extrabold text-slate-800 break-words break-all">{selectedTemplate.name}</h1>
                                     </div>
                                     <button
                                         onClick={() => setShowTaskForm(true)}
-                                        className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all flex items-center gap-2"
+                                        className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all flex items-center gap-2 shrink-0"
                                     >
                                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -197,14 +197,16 @@ const SubObjectTemplateManager = ({ onClose }) => {
                                             <div>
                                                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Шаблон чеклиста</label>
                                                 <select
-                                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none"
+                                                    className="w-full max-w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none truncate"
                                                     value={newTask.checklistTemplateId}
                                                     onChange={e => setNewTask({ ...newTask, checklistTemplateId: e.target.value })}
                                                     required
                                                 >
                                                     <option value="">Выберите чеклист...</option>
                                                     {checklistTemplates.map(ct => (
-                                                        <option key={ct.id} value={ct.id}>{ct.name}</option>
+                                                        <option key={ct.id} value={ct.id} title={ct.name}>
+                                                            {ct.name.length > 35 ? ct.name.substring(0, 35) + '...' : ct.name}
+                                                        </option>
                                                     ))}
                                                 </select>
                                                 <p className="text-xs text-slate-400 mt-2">
@@ -223,15 +225,15 @@ const SubObjectTemplateManager = ({ onClose }) => {
                                     {(selectedTemplate.taskTemplates || [])
                                         .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
                                         .map((task, idx) => (
-                                            <div key={task.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all flex items-center justify-between group">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xs">
+                                            <div key={task.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all flex items-center justify-between gap-4 group">
+                                                <div className="flex items-center gap-4 flex-1 min-w-0">
+                                                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xs shrink-0">
                                                         {idx + 1}
                                                     </div>
-                                                    <div>
-                                                        <h4 className="font-bold text-slate-800 text-lg">{task.name}</h4>
-                                                        <div className="flex items-center gap-2 mt-1">
-                                                            <span className="text-xs text-slate-400 font-medium bg-slate-50 px-2 py-1 rounded">
+                                                    <div className="min-w-0 flex-1">
+                                                        <h4 className="font-bold text-slate-800 text-lg break-words break-all">{task.name}</h4>
+                                                        <div className="flex items-center gap-2 mt-1 min-w-0">
+                                                            <span className="text-xs text-slate-400 font-medium bg-slate-50 px-2 py-1 rounded truncate">
                                                                 Чеклист: {task.checklistTemplate?.name || 'Не указан'}
                                                             </span>
                                                         </div>
